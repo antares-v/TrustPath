@@ -14,6 +14,7 @@ class AppState: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var isAuthenticated = false
+    @Published var hasCompletedOnboarding = false
     
     let userService = UserService()
     private let matchingService = MatchingService()
@@ -24,6 +25,22 @@ class AppState: ObservableObject {
         // Check if user is already authenticated (in production, check UserDefaults/Keychain)
         // For now, start logged out
         isAuthenticated = false
+    }
+    
+    func checkOnboardingStatus() {
+        if let userId = currentUser?.id.uuidString {
+            hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding_\(userId)")
+        }
+    }
+    
+    func getEncouragingMessage() -> String? {
+        guard let userId = currentUser?.id.uuidString else { return nil }
+        return UserDefaults.standard.string(forKey: "encouragingMessage_\(userId)")
+    }
+    
+    func getGoal() -> String? {
+        guard let userId = currentUser?.id.uuidString else { return nil }
+        return UserDefaults.standard.string(forKey: "goal_\(userId)")
     }
     
     func updateUser(_ user: UserModel) {
@@ -122,6 +139,7 @@ class AppState: ObservableObject {
         currentUser = nil
         currentMatch = nil
         isAuthenticated = false
+        hasCompletedOnboarding = false
     }
     
     func createEvent(

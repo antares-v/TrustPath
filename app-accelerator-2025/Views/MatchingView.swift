@@ -41,7 +41,7 @@ struct MatchingView: View {
                             }
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.blue)
+                            .background(Color(hex: "#284b63"))
                             .foregroundColor(.white)
                             .cornerRadius(12)
                         }
@@ -108,7 +108,7 @@ struct MatchCard: View {
             HStack {
                 Image(systemName: "person.circle.fill")
                     .font(.system(size: 60))
-                    .foregroundColor(.blue)
+                    .foregroundColor(Color(hex: "#284b63"))
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(match.volunteer.name)
@@ -163,8 +163,8 @@ struct MatchCard: View {
                                         .font(.caption)
                                         .padding(.horizontal, 10)
                                         .padding(.vertical, 6)
-                                        .background(Color.blue.opacity(0.2))
-                                        .foregroundColor(.blue)
+                                        .background(Color(hex: "#284b63").opacity(0.2))
+                                        .foregroundColor(Color(hex: "#284b63"))
                                         .cornerRadius(12)
                                 }
                             }
@@ -229,7 +229,7 @@ struct CompactMatchCard: View {
             HStack {
                 Image(systemName: "person.circle.fill")
                     .font(.system(size: 40))
-                    .foregroundColor(.blue)
+                    .foregroundColor(Color(hex: "#284b63"))
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(match.volunteer.name)
@@ -262,7 +262,7 @@ struct DetailRow: View {
     var body: some View {
         HStack {
             Image(systemName: icon)
-                .foregroundColor(.blue)
+                .foregroundColor(Color(hex: "#284b63"))
                 .frame(width: 24)
             Text(title)
                 .font(.subheadline)
@@ -281,12 +281,12 @@ struct LoadingAnimationView: View {
     var body: some View {
         ZStack {
             Circle()
-                .stroke(Color.blue.opacity(0.2), lineWidth: 8)
+                .stroke(Color(hex: "#284b63").opacity(0.2), lineWidth: 8)
                 .frame(width: 80, height: 80)
             
             Circle()
                 .trim(from: 0, to: 0.7)
-                .stroke(Color.blue, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                .stroke(Color(hex: "#284b63"), style: StrokeStyle(lineWidth: 8, lineCap: .round))
                 .frame(width: 80, height: 80)
                 .rotationEffect(.degrees(rotation))
                 .animation(
@@ -300,7 +300,7 @@ struct LoadingAnimationView: View {
             
             Image(systemName: "person.2.circle.fill")
                 .font(.system(size: 40))
-                .foregroundColor(.blue)
+                .foregroundColor(Color(hex: "#284b63"))
         }
     }
 }
@@ -312,7 +312,7 @@ struct EmptyMatchStateView: View {
         VStack(spacing: 24) {
             Image(systemName: "person.2.circle.fill")
                 .font(.system(size: 80))
-                .foregroundColor(.blue.opacity(0.6))
+                .foregroundColor(Color(hex: "#284b63").opacity(0.6))
                 .scaleEffect(scale)
                 .animation(
                     Animation.easeInOut(duration: 2)

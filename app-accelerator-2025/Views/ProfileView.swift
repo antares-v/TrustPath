@@ -32,7 +32,7 @@ struct ProfileView: View {
                     VStack(spacing: 16) {
                         Image(systemName: "person.circle.fill")
                             .font(.system(size: 80))
-                            .foregroundColor(.blue)
+                            .foregroundColor(Color(hex: "#284b63"))
                         
                         if let user = appState.currentUser {
                             Text(user.name)
@@ -69,7 +69,7 @@ struct ProfileView: View {
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(Color.blue)
+                                .background(Color(hex: "#284b63"))
                                 .foregroundColor(.white)
                                 .cornerRadius(12)
                             }
@@ -87,7 +87,7 @@ struct ProfileView: View {
                                 }) {
                                     Text("Edit Quiz")
                                         .font(.subheadline)
-                                        .foregroundColor(.blue)
+                                        .foregroundColor(Color(hex: "#284b63"))
                                 }
                             }
                             .padding()
@@ -227,7 +227,7 @@ struct ProfileQuizView: View {
                             }) {
                                 Image(systemName: "plus.circle.fill")
                                     .font(.title2)
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(Color(hex: "#284b63"))
                             }
                         }
                         
@@ -261,7 +261,7 @@ struct ProfileQuizView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(canSubmit ? Color.blue : Color.gray)
+                        .background(canSubmit ? Color(hex: "#284b63") : Color.gray)
                         .foregroundColor(.white)
                         .cornerRadius(12)
                     }
@@ -318,7 +318,7 @@ struct SectionHeader: View {
         Text(title)
             .font(.headline)
             .fontWeight(.semibold)
-            .foregroundColor(.primary)
+            .foregroundColor(Color(hex: "#353535"))
     }
 }
 
@@ -326,8 +326,9 @@ struct CustomTextFieldStyle: TextFieldStyle {
     func _body(configuration: TextField<Self._Label>) -> some View {
         configuration
             .padding()
-            .background(Color(.systemGray6))
+            .background(Color(hex: "#d9d9d9"))
             .cornerRadius(12)
+            .foregroundColor(Color(hex: "#353535"))
     }
 }
 
@@ -342,7 +343,7 @@ struct HobbyButton: View {
                 .font(.subheadline)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
-                .background(isSelected ? Color.blue : Color(.systemGray5))
+                .background(isSelected ? Color(hex: "#284b63") : Color(hex: "#d9d9d9"))
                 .foregroundColor(isSelected ? .white : .primary)
                 .cornerRadius(20)
         }
@@ -364,8 +365,8 @@ struct InterestTag: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
-        .background(Color.blue.opacity(0.2))
-        .foregroundColor(.blue)
+        .background(Color(hex: "#284b63").opacity(0.2))
+        .foregroundColor(Color(hex: "#284b63"))
         .cornerRadius(16)
     }
 }

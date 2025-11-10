@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import Foundation
 
 struct LoginView: View {
     @EnvironmentObject var appState: AppState
@@ -21,31 +22,32 @@ struct LoginView: View {
             // Logo/Icon
             Image(systemName: "person.2.circle.fill")
                 .font(.system(size: 80))
-                .foregroundColor(.blue)
+                .foregroundColor(Color(hex: "#284b63"))
             
             // Title
             Text(isSignUp ? "Create Account" : "Welcome Back")
                 .font(.largeTitle)
                 .fontWeight(.bold)
+                .foregroundColor(Color(hex: "#353535"))
             
             Text(isSignUp ? "Sign up to get started" : "Sign in to continue")
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundColor(Color(hex: "#353535"))
             
             // Form
             VStack(spacing: 20) {
                 if isSignUp {
                     TextField("Full Name", text: $name)
-                        .textFieldStyle(CustomTextFieldStyle())
+                        .textFieldStyle(CustomLoginTextFieldStyle())
                 }
                 
                 TextField("Email", text: $email)
-                    .textFieldStyle(CustomTextFieldStyle())
+                    .textFieldStyle(CustomLoginTextFieldStyle())
                     .keyboardType(.emailAddress)
                     .autocapitalization(.none)
                 
                 SecureField("Password", text: $password)
-                    .textFieldStyle(CustomTextFieldStyle())
+                    .textFieldStyle(CustomLoginTextFieldStyle())
             }
             .padding(.horizontal, 40)
             
@@ -64,7 +66,7 @@ struct LoginView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(canSubmit ? Color.blue : Color.gray)
+                .background(canSubmit ? Color(hex: "#284b63") : Color.gray)
                 .foregroundColor(.white)
                 .cornerRadius(12)
             }
@@ -80,9 +82,9 @@ struct LoginView: View {
             }) {
                 HStack {
                     Text(isSignUp ? "Already have an account?" : "Don't have an account?")
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Color(hex: "#353535"))
                     Text(isSignUp ? "Sign In" : "Sign Up")
-                        .foregroundColor(.blue)
+                        .foregroundColor(Color(hex: "#284b63"))
                         .fontWeight(.semibold)
                 }
             }
@@ -97,7 +99,17 @@ struct LoginView: View {
     }
     
     private var canSubmit: Bool {
-        !email.isEmpty && !password.isEmpty && (isSignUp ? !name.isEmpty : true)
+        !email.isEmpty && 
+        !password.isEmpty && 
+        password.count >= 6 && // Minimum password length
+        (isSignUp ? !name.isEmpty : true) &&
+        isValidEmail(email)
+    }
+    
+    private func isValidEmail(_ email: String) -> Bool {
+        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+        let emailPredicate = NSPredicate(format:"SELF MATCHES %@", emailRegex)
+        return emailPredicate.evaluate(with: email)
     }
     
     private func handleAuthentication() {
@@ -113,7 +125,17 @@ struct LoginView: View {
     }
     
     private func signUp() async {
+        // Check if email already exists
         do {
+            let allUsers = try appState.userService.getAllUsers()
+            if allUsers.contains(where: { $0.email.lowercased() == email.lowercased() }) {
+                await MainActor.run {
+                    errorMessage = "An account with this email already exists. Please sign in."
+                    showingError = true
+                }
+                return
+            }
+            
             let user = try appState.userService.createClient(
                 name: name,
                 email: email
@@ -121,6 +143,7 @@ struct LoginView: View {
             await MainActor.run {
                 appState.currentUser = user
                 appState.isAuthenticated = true
+                appState.hasCompletedOnboarding = false
             }
         } catch {
             await MainActor.run {
@@ -132,23 +155,19 @@ struct LoginView: View {
     
     private func signIn() async {
         // In a real app, you'd verify credentials with a backend
-        // For now, we'll try to find existing user or create one
+        // For now, we'll try to find existing user
         do {
             let allUsers = try appState.userService.getAllUsers()
             if let user = allUsers.first(where: { $0.email.lowercased() == email.lowercased() }) {
                 await MainActor.run {
                     appState.currentUser = user
                     appState.isAuthenticated = true
+                    appState.checkOnboardingStatus()
                 }
             } else {
-                // Create user if doesn't exist (for demo purposes)
-                let user = try appState.userService.createClient(
-                    name: email.components(separatedBy: "@").first ?? "User",
-                    email: email
-                )
                 await MainActor.run {
-                    appState.currentUser = user
-                    appState.isAuthenticated = true
+                    errorMessage = "No account found with this email. Please sign up."
+                    showingError = true
                 }
             }
         } catch {
@@ -157,6 +176,15 @@ struct LoginView: View {
                 showingError = true
             }
         }
+    }
+}
+
+struct CustomLoginTextFieldStyle: TextFieldStyle {
+    func _body(configuration: TextField<Self._Label>) -> some View {
+        configuration
+            .padding()
+            .background(Color(hex: "#d9d9d9"))
+            .cornerRadius(12)
     }
 }
 

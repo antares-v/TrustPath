@@ -25,7 +25,7 @@ struct CalendarView: View {
                         Button(action: { changeMonth(-1) }) {
                             Image(systemName: "chevron.left")
                                 .font(.title3)
-                                .foregroundColor(.blue)
+                                .foregroundColor(Color(hex: "#284b63"))
                         }
                         
                         Spacer()
@@ -33,13 +33,14 @@ struct CalendarView: View {
                         Text(monthYearString)
                             .font(.title2)
                             .fontWeight(.bold)
+                            .foregroundColor(Color(hex: "#353535"))
                         
                         Spacer()
                         
                         Button(action: { changeMonth(1) }) {
                             Image(systemName: "chevron.right")
                                 .font(.title3)
-                                .foregroundColor(.blue)
+                                .foregroundColor(Color(hex: "#284b63"))
                         }
                     }
                     .padding(.horizontal)
@@ -50,7 +51,7 @@ struct CalendarView: View {
                             Text(weekday)
                                 .font(.caption)
                                 .fontWeight(.semibold)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(Color(hex: "#353535"))
                                 .frame(maxWidth: .infinity)
                         }
                     }
@@ -77,9 +78,15 @@ struct CalendarView: View {
                     .padding(.horizontal)
                 }
                 .padding(.vertical)
-                .background(Color(.systemGray6))
+                .background(Color.white)
                 
                 Divider()
+                
+                // Encouraging Message Card
+                if let message = appState.getEncouragingMessage() {
+                    EncouragingMessageCard(message: message)
+                        .padding()
+                }
                 
                 // Events List
                 if isLoading {
@@ -99,6 +106,7 @@ struct CalendarView: View {
                         VStack(spacing: 12) {
                             Text("Events for \(dayString(for: selectedDate))")
                                 .font(.headline)
+                                .foregroundColor(Color(hex: "#353535"))
                                 .padding(.top)
                             
                             ForEach(eventsForDate(selectedDate)) { event in
@@ -224,34 +232,78 @@ struct CalendarDayView: View {
             VStack(spacing: 4) {
                 Text(dayNumber)
                     .font(.system(size: 16, weight: isSelected ? .bold : .regular))
-                    .foregroundColor(isSelected ? .white : (isToday ? .blue : .primary))
+                    .foregroundColor(isSelected ? .white : (isToday ? Color(hex: "#284b63") : Color(hex: "#353535")))
                 
                 if !events.isEmpty {
                     HStack(spacing: 2) {
                         ForEach(Array(events.prefix(3))) { _ in
                             Circle()
-                                .fill(isSelected ? Color.white : Color.blue)
+                                .fill(isSelected ? Color.white : Color(hex: "#3c6e71"))
                                 .frame(width: 4, height: 4)
                         }
                         if events.count > 3 {
                             Text("+")
                                 .font(.system(size: 8))
-                                .foregroundColor(isSelected ? .white : .blue)
+                                .foregroundColor(isSelected ? .white : Color(hex: "#3c6e71"))
                         }
                     }
                 }
             }
             .frame(width: 44, height: 44)
-            .background(isSelected ? Color.blue : (isToday ? Color.blue.opacity(0.1) : Color.clear))
+            .background(isSelected ? Color(hex: "#284b63") : (isToday ? Color(hex: "#284b63").opacity(0.1) : Color.clear))
             .cornerRadius(8)
         }
         .buttonStyle(PlainButtonStyle())
     }
 }
 
+struct EncouragingMessageCard: View {
+    let message: String
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "heart.fill")
+                .font(.title2)
+                .foregroundColor(Color(hex: "#284b63"))
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Encouraging Message")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(Color(hex: "#353535"))
+                
+                Text(message)
+                    .font(.subheadline)
+                    .foregroundColor(Color(hex: "#353535"))
+            }
+            
+            Spacer()
+        }
+        .padding()
+        .background(Color(hex: "#3c6e71").opacity(0.1))
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color(hex: "#3c6e71"), lineWidth: 1)
+        )
+    }
+}
+
 struct EventCard: View {
     let event: CalendarEvent
     let onTap: () -> Void
+    
+    // Different colors for variety
+    private var cardColor: Color {
+        let colors: [Color] = [
+            Color(hex: "#3c6e71"),
+            Color(hex: "#284b63"),
+            Color(hex: "#3c6e71").opacity(0.8),
+            Color(hex: "#284b63").opacity(0.8)
+        ]
+        let index = abs(event.id.hashValue) % colors.count
+        return colors[index]
+    }
     
     var body: some View {
         Button(action: onTap) {
@@ -260,36 +312,36 @@ struct EventCard: View {
                 VStack(spacing: 4) {
                     Text(timeString(from: event.date))
                         .font(.headline)
-                        .foregroundColor(.blue)
+                        .foregroundColor(.white)
                     Text(durationString(from: event.duration))
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.white.opacity(0.8))
                 }
                 .frame(width: 60)
                 
                 VStack(alignment: .leading, spacing: 8) {
                     Text(event.title)
                         .font(.headline)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.white)
                         .multilineTextAlignment(.leading)
                     
                     HStack {
                         Image(systemName: eventTypeIcon(event.eventType))
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.white.opacity(0.9))
                         Text(eventTypeString(event.eventType))
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.white.opacity(0.9))
                     }
                     
                     if let location = event.location {
                         HStack {
                             Image(systemName: "mappin.circle.fill")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(.white.opacity(0.9))
                             Text(location)
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(.white.opacity(0.9))
                         }
                     }
                 }
@@ -298,11 +350,11 @@ struct EventCard: View {
                 
                 if event.isCompleted {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
+                        .foregroundColor(.white)
                 }
             }
             .padding()
-            .background(Color(.systemGray6))
+            .background(cardColor)
             .cornerRadius(12)
         }
         .buttonStyle(PlainButtonStyle())
