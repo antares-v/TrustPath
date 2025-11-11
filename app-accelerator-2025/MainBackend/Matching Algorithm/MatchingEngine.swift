@@ -52,14 +52,23 @@ class MatchingEngine {
     private func calculateCommonItemsScore(_ items1: [String], _ items2: [String]) -> Double {
         guard !items1.isEmpty && !items2.isEmpty else { return 0.0 }
         
-        let set1 = Set(items1.map { $0.lowercased() })
-        let set2 = Set(items2.map { $0.lowercased() })
-        let common = set1.intersection(set2)
+        // Normalize strings (lowercase and trim whitespace) for better matching
+        let set1 = Set(items1.map { $0.lowercased().trimmingCharacters(in: .whitespaces) })
+        let set2 = Set(items2.map { $0.lowercased().trimmingCharacters(in: .whitespaces) })
         
-        let totalUnique = set1.union(set2).count
-        guard totalUnique > 0 else { return 0.0 }
+        // Remove empty strings
+        let filteredSet1 = set1.filter { !$0.isEmpty }
+        let filteredSet2 = set2.filter { !$0.isEmpty }
         
-        return Double(common.count) / Double(totalUnique)
+        guard !filteredSet1.isEmpty && !filteredSet2.isEmpty else { return 0.0 }
+        
+        // Calculate Jaccard similarity (intersection over union)
+        let intersection = filteredSet1.intersection(filteredSet2)
+        let union = filteredSet1.union(filteredSet2)
+        
+        guard !union.isEmpty else { return 0.0 }
+        
+        return Double(intersection.count) / Double(union.count)
     }
     
     func findMatches(for client: UserModel, from volunteers: [UserModel]) -> [MatchResult] {
@@ -67,13 +76,22 @@ class MatchingEngine {
             return []
         }
         
-        return volunteers
-            .filter { $0.userType == .volunteer }
-            .map { volunteer in
-                let score = calculateMatchScore(client: client, volunteer: volunteer)
-                return MatchResult(volunteer: volunteer, matchScore: score)
-            }
-            .sorted { $0.matchScore > $1.matchScore }
+        // Filter out volunteers who are already matched with this client
+        // and only include volunteers with completed profile quizzes
+        let availableVolunteers = volunteers.filter { volunteer in
+            volunteer.userType == .volunteer &&
+            volunteer.profileQuiz != nil &&
+            !volunteer.matchedClientIds.contains(client.id)
+        }
+        
+        // Calculate match scores
+        let matches = availableVolunteers.map { volunteer in
+            let score = calculateMatchScore(client: client, volunteer: volunteer)
+            return MatchResult(volunteer: volunteer, matchScore: score)
+        }
+        
+        // Sort by match score (highest first)
+        return matches.sorted { $0.matchScore > $1.matchScore }
     }
 }
 
