@@ -8,6 +8,16 @@ class UserService {
     }
     
     func createClient(name: String, email: String, paroleEndDate: Date? = nil) throws -> UserModel {
+        // Validate email format (basic validation)
+        guard !email.isEmpty, email.contains("@") else {
+            throw UserError.invalidEmail
+        }
+        
+        // Check if user with this email already exists
+        if try repository.userExists(byEmail: email) {
+            throw UserError.duplicateEmail
+        }
+        
         let user = UserModel(
             userType: .client,
             name: name,
@@ -19,6 +29,16 @@ class UserService {
     }
     
     func createVolunteer(name: String, email: String) throws -> UserModel {
+        // Validate email format (basic validation)
+        guard !email.isEmpty, email.contains("@") else {
+            throw UserError.invalidEmail
+        }
+        
+        // Check if user with this email already exists
+        if try repository.userExists(byEmail: email) {
+            throw UserError.duplicateEmail
+        }
+        
         let user = UserModel(
             userType: .volunteer,
             name: name,
@@ -26,6 +46,10 @@ class UserService {
         )
         try repository.save(user)
         return user
+    }
+    
+    func getUser(byEmail email: String) throws -> UserModel? {
+        return try repository.fetch(byEmail: email)
     }
     
     func submitProfileQuiz(userId: UUID, quiz: ProfileQuiz) throws {
@@ -64,5 +88,7 @@ class UserService {
 enum UserError: Error {
     case userNotFound
     case invalidUserType
+    case invalidEmail
+    case duplicateEmail
 }
 
