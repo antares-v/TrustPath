@@ -7,25 +7,59 @@ class UserService {
         self.repository = repository
     }
     
-    func createClient(name: String, email: String, paroleEndDate: Date? = nil) throws -> UserModel {
+    func createClient(name: String, email: String, paroleEndDate: Date? = nil, onboardingQuiz: OnboardingQuiz? = nil) throws -> UserModel {
+        // Validate email format (basic validation)
+        guard !email.isEmpty, email.contains("@") else {
+            throw UserError.invalidEmail
+        }
+        
+        // Check if user with this email already exists
+        if try repository.userExists(byEmail: email) {
+            throw UserError.duplicateEmail
+        }
+        
         let user = UserModel(
             userType: .client,
             name: name,
             email: email,
+            onboardingQuiz: onboardingQuiz,
             paroleEndDate: paroleEndDate
         )
         try repository.save(user)
         return user
     }
     
-    func createVolunteer(name: String, email: String) throws -> UserModel {
+    func createVolunteer(name: String, email: String, onboardingQuiz: OnboardingQuiz? = nil) throws -> UserModel {
+        // Validate email format (basic validation)
+        guard !email.isEmpty, email.contains("@") else {
+            throw UserError.invalidEmail
+        }
+        
+        // Check if user with this email already exists
+        if try repository.userExists(byEmail: email) {
+            throw UserError.duplicateEmail
+        }
+        
         let user = UserModel(
             userType: .volunteer,
             name: name,
-            email: email
+            email: email,
+            onboardingQuiz: onboardingQuiz
         )
         try repository.save(user)
         return user
+    }
+    
+    func submitOnboardingQuiz(userId: UUID, quiz: OnboardingQuiz) throws {
+        guard var user = try repository.fetch(byId: userId) else {
+            throw UserError.userNotFound
+        }
+        user.onboardingQuiz = quiz
+        try repository.update(user)
+    }
+    
+    func getUser(byEmail email: String) throws -> UserModel? {
+        return try repository.fetch(byEmail: email)
     }
     
     func submitProfileQuiz(userId: UUID, quiz: ProfileQuiz) throws {
@@ -64,5 +98,7 @@ class UserService {
 enum UserError: Error {
     case userNotFound
     case invalidUserType
+    case invalidEmail
+    case duplicateEmail
 }
 
