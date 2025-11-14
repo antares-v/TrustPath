@@ -9,16 +9,16 @@ struct OnboardingView: View {
     @EnvironmentObject var appState: AppState
     @State private var currentStep = 0
     @State private var name: String = ""
-    @State private var selectedInterests: Set<String> = []
+    @State private var dateOfBirth = Date()
+    @State private var phoneNumber: String = ""
+    @State private var address: String = ""
+    @State private var emergencyContactName: String = ""
+    @State private var emergencyContactPhone: String = ""
+    @State private var preferredLanguage: String = "English"
     @State private var encouragingMessage: String = ""
     @State private var goal: String = ""
     
-    private let availableInterests = [
-        "Sports", "Reading", "Music", "Cooking", "Gardening",
-        "Art", "Photography", "Travel", "Gaming", "Fitness",
-        "Movies", "Dancing", "Writing", "Volunteering", "Technology",
-        "Hiking", "Yoga", "Meditation", "Chess", "Painting"
-    ]
+    private let languages = ["English", "Spanish", "French", "Mandarin", "Arabic", "Other"]
     
     var body: some View {
         ZStack {
@@ -27,29 +27,41 @@ struct OnboardingView: View {
             
             VStack(spacing: 0) {
                 // Progress indicator
-                ProgressView(value: Double(currentStep + 1), total: 3)
+                ProgressView(value: Double(currentStep + 1), total: 4)
                     .progressViewStyle(LinearProgressViewStyle(tint: Color(hex: "#284b63")))
                     .padding()
                 
                 // Content
                 TabView(selection: $currentStep) {
-                    // Step 1: Name
-                    OnboardingStep1View(name: $name)
+                    // Step 1: Basic Info
+                    OnboardingStep1View(
+                        name: $name,
+                        dateOfBirth: $dateOfBirth,
+                        phoneNumber: $phoneNumber
+                    )
                         .tag(0)
                     
-                    // Step 2: Interests
+                    // Step 2: Address & Language
                     OnboardingStep2View(
-                        selectedInterests: $selectedInterests,
-                        availableInterests: availableInterests
+                        address: $address,
+                        preferredLanguage: $preferredLanguage,
+                        languages: languages
                     )
                         .tag(1)
                     
-                    // Step 3: Questions
+                    // Step 3: Emergency Contact
                     OnboardingStep3View(
+                        emergencyContactName: $emergencyContactName,
+                        emergencyContactPhone: $emergencyContactPhone
+                    )
+                        .tag(2)
+                    
+                    // Step 4: Encouraging Message & Goal
+                    OnboardingStep4View(
                         encouragingMessage: $encouragingMessage,
                         goal: $goal
                     )
-                        .tag(2)
+                        .tag(3)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 
@@ -71,7 +83,7 @@ struct OnboardingView: View {
                     
                     Button(action: {
                         if canProceed {
-                            if currentStep < 2 {
+                            if currentStep < 3 {
                                 withAnimation {
                                     currentStep += 1
                                 }
@@ -80,7 +92,7 @@ struct OnboardingView: View {
                             }
                         }
                     }) {
-                        Text(currentStep < 2 ? "Next" : "Complete")
+                        Text(currentStep < 3 ? "Next" : "Complete")
                             .foregroundColor(.white)
                             .padding()
                             .frame(minWidth: 100)
@@ -97,8 +109,9 @@ struct OnboardingView: View {
     private var canProceed: Bool {
         switch currentStep {
         case 0: return !name.trimmingCharacters(in: .whitespaces).isEmpty
-        case 1: return !selectedInterests.isEmpty
-        case 2: return !encouragingMessage.trimmingCharacters(in: .whitespaces).isEmpty &&
+        case 1: return true // Address and language are optional
+        case 2: return true // Emergency contact is optional
+        case 3: return !encouragingMessage.trimmingCharacters(in: .whitespaces).isEmpty &&
                       !goal.trimmingCharacters(in: .whitespaces).isEmpty
         default: return false
         }
@@ -107,18 +120,30 @@ struct OnboardingView: View {
     private func completeOnboarding() {
         guard let userId = appState.currentUser?.id.uuidString else { return }
         
-        // Save onboarding data
+        // Save encouraging message and goal
         UserDefaults.standard.set(encouragingMessage, forKey: "encouragingMessage_\(userId)")
         UserDefaults.standard.set(goal, forKey: "goal_\(userId)")
         UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding_\(userId)")
         
-        // Update user name - create new user instance with updated name
+        // Create OnboardingQuiz
+        let onboardingQuiz = OnboardingQuiz(
+            name: name,
+            dateOfBirth: dateOfBirth,
+            phoneNumber: phoneNumber.isEmpty ? nil : phoneNumber,
+            address: address.isEmpty ? nil : address,
+            emergencyContactName: emergencyContactName.isEmpty ? nil : emergencyContactName,
+            emergencyContactPhone: emergencyContactPhone.isEmpty ? nil : emergencyContactPhone,
+            preferredLanguage: preferredLanguage
+        )
+        
+        // Update user with onboarding quiz
         if let currentUser = appState.currentUser {
             let updatedUser = UserModel(
                 id: currentUser.id,
                 userType: currentUser.userType,
                 name: name,
                 email: currentUser.email,
+                onboardingQuiz: onboardingQuiz,
                 profileQuiz: currentUser.profileQuiz,
                 matchedVolunteerId: currentUser.matchedVolunteerId,
                 matchedClientIds: currentUser.matchedClientIds,
@@ -128,19 +153,16 @@ struct OnboardingView: View {
             appState.updateUser(updatedUser)
         }
         
-        // Create profile quiz with interests
-        let quiz = ProfileQuiz(
-            hobbies: Array(selectedInterests),
-            languagePreference: "English", // Default, can be updated later
-            neighborhood: "", // Can be updated later
-            genderPreference: nil,
-            communicationStyle: .mixed,
-            interests: Array(selectedInterests),
-            background: nil
-        )
-        
         Task {
-            await appState.submitProfileQuiz(quiz)
+            // Submit onboarding quiz to backend
+            if let userId = appState.currentUser?.id {
+                do {
+                    try appState.userService.submitOnboardingQuiz(userId: userId, quiz: onboardingQuiz)
+                } catch {
+                    print("Error submitting onboarding quiz: \(error)")
+                }
+            }
+            
             await MainActor.run {
                 appState.hasCompletedOnboarding = true
             }
@@ -150,65 +172,101 @@ struct OnboardingView: View {
 
 struct OnboardingStep1View: View {
     @Binding var name: String
+    @Binding var dateOfBirth: Date
+    @Binding var phoneNumber: String
     
     var body: some View {
-        VStack(spacing: 30) {
-            Spacer()
-            
-            Image(systemName: "person.circle.fill")
-                .font(.system(size: 100))
-                .foregroundColor(Color(hex: "#284b63"))
-            
-            Text("What's your name?")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .foregroundColor(Color(hex: "#353535"))
-            
-            TextField("Enter your name", text: $name)
-                .textFieldStyle(CustomOnboardingTextFieldStyle())
+        ScrollView {
+            VStack(spacing: 30) {
+                Image(systemName: "person.circle.fill")
+                    .font(.system(size: 100))
+                    .foregroundColor(Color(hex: "#284b63"))
+                    .padding(.top, 40)
+                
+                Text("Basic Information")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(Color(hex: "#353535"))
+                
+                VStack(spacing: 20) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Full Name *")
+                            .font(.headline)
+                            .foregroundColor(Color(hex: "#353535"))
+                        TextField("Enter your name", text: $name)
+                            .textFieldStyle(CustomOnboardingTextFieldStyle())
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Date of Birth *")
+                            .font(.headline)
+                            .foregroundColor(Color(hex: "#353535"))
+                        DatePicker("", selection: $dateOfBirth, displayedComponents: .date)
+                            .datePickerStyle(.compact)
+                            .padding()
+                            .background(Color(hex: "#d9d9d9"))
+                            .cornerRadius(12)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Phone Number")
+                            .font(.headline)
+                            .foregroundColor(Color(hex: "#353535"))
+                        TextField("(555) 123-4567", text: $phoneNumber)
+                            .textFieldStyle(CustomOnboardingTextFieldStyle())
+                            .keyboardType(.phonePad)
+                    }
+                }
                 .padding(.horizontal, 40)
-            
-            Spacer()
+                .padding(.bottom, 40)
+            }
         }
     }
 }
 
 struct OnboardingStep2View: View {
-    @Binding var selectedInterests: Set<String>
-    let availableInterests: [String]
+    @Binding var address: String
+    @Binding var preferredLanguage: String
+    let languages: [String]
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
-                Image(systemName: "heart.circle.fill")
-                    .font(.system(size: 80))
+            VStack(spacing: 30) {
+                Image(systemName: "mappin.circle.fill")
+                    .font(.system(size: 100))
                     .foregroundColor(Color(hex: "#284b63"))
                     .padding(.top, 40)
                 
-                Text("Select your interests")
+                Text("Location & Language")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .foregroundColor(Color(hex: "#353535"))
                 
-                Text("Choose all that apply")
-                    .font(.subheadline)
-                    .foregroundColor(Color(hex: "#353535"))
-                
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 12) {
-                    ForEach(availableInterests, id: \.self) { interest in
-                        InterestButton(
-                            title: interest,
-                            isSelected: selectedInterests.contains(interest)
-                        ) {
-                            if selectedInterests.contains(interest) {
-                                selectedInterests.remove(interest)
-                            } else {
-                                selectedInterests.insert(interest)
+                VStack(spacing: 20) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Address")
+                            .font(.headline)
+                            .foregroundColor(Color(hex: "#353535"))
+                        TextField("Enter your address", text: $address)
+                            .textFieldStyle(CustomOnboardingTextFieldStyle())
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Preferred Language")
+                            .font(.headline)
+                            .foregroundColor(Color(hex: "#353535"))
+                        Picker("Language", selection: $preferredLanguage) {
+                            ForEach(languages, id: \.self) { language in
+                                Text(language).tag(language)
                             }
                         }
+                        .pickerStyle(.menu)
+                        .padding()
+                        .background(Color(hex: "#d9d9d9"))
+                        .cornerRadius(12)
                     }
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 40)
                 .padding(.bottom, 40)
             }
         }
@@ -216,6 +274,52 @@ struct OnboardingStep2View: View {
 }
 
 struct OnboardingStep3View: View {
+    @Binding var emergencyContactName: String
+    @Binding var emergencyContactPhone: String
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 30) {
+                Image(systemName: "person.2.circle.fill")
+                    .font(.system(size: 100))
+                    .foregroundColor(Color(hex: "#284b63"))
+                    .padding(.top, 40)
+                
+                Text("Emergency Contact")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(Color(hex: "#353535"))
+                
+                Text("Optional - for your safety")
+                    .font(.subheadline)
+                    .foregroundColor(Color(hex: "#353535"))
+                
+                VStack(spacing: 20) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Contact Name")
+                            .font(.headline)
+                            .foregroundColor(Color(hex: "#353535"))
+                        TextField("Enter contact name", text: $emergencyContactName)
+                            .textFieldStyle(CustomOnboardingTextFieldStyle())
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Contact Phone")
+                            .font(.headline)
+                            .foregroundColor(Color(hex: "#353535"))
+                        TextField("(555) 123-4567", text: $emergencyContactPhone)
+                            .textFieldStyle(CustomOnboardingTextFieldStyle())
+                            .keyboardType(.phonePad)
+                    }
+                }
+                .padding(.horizontal, 40)
+                .padding(.bottom, 40)
+            }
+        }
+    }
+}
+
+struct OnboardingStep4View: View {
     @Binding var encouragingMessage: String
     @Binding var goal: String
     
@@ -228,7 +332,7 @@ struct OnboardingStep3View: View {
                     .padding(.top, 40)
                 
                 VStack(alignment: .leading, spacing: 20) {
-                    Text("What's an encouraging message you would like someone to say to you?")
+                    Text("What's an encouraging message you would like someone to say to you? *")
                         .font(.headline)
                         .foregroundColor(Color(hex: "#353535"))
                     
@@ -242,7 +346,7 @@ struct OnboardingStep3View: View {
                                 .stroke(Color(hex: "#284b63"), lineWidth: 2)
                         )
                     
-                    Text("What's a goal you'd like to achieve?")
+                    Text("What's a goal you'd like to achieve? *")
                         .font(.headline)
                         .foregroundColor(Color(hex: "#353535"))
                         .padding(.top)
@@ -264,24 +368,6 @@ struct OnboardingStep3View: View {
     }
 }
 
-struct InterestButton: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.subheadline)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(isSelected ? Color(hex: "#284b63") : Color(hex: "#d9d9d9"))
-                .foregroundColor(isSelected ? .white : Color(hex: "#353535"))
-                .cornerRadius(20)
-        }
-    }
-}
-
 struct CustomOnboardingTextFieldStyle: TextFieldStyle {
     func _body(configuration: TextField<Self._Label>) -> some View {
         configuration
@@ -299,4 +385,3 @@ struct CustomOnboardingTextFieldStyle: TextFieldStyle {
     OnboardingView()
         .environmentObject(AppState())
 }
-

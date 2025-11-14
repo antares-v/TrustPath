@@ -149,17 +149,33 @@ struct MatchCard: View {
             // Profile Details
             if let quiz = match.volunteer.profileQuiz {
                 VStack(alignment: .leading, spacing: 12) {
-                    DetailRow(icon: "globe", title: "Language", value: quiz.languagePreference)
-                    DetailRow(icon: "mappin.circle", title: "Neighborhood", value: quiz.neighborhood)
-                    DetailRow(icon: "message", title: "Communication", value: communicationStyleString(quiz.communicationStyle))
+                    if let language = quiz.languagePreference {
+                        DetailRow(icon: "globe", title: "Language", value: language)
+                    }
                     
-                    if !quiz.hobbies.isEmpty {
+                    if let neighborhood = quiz.neighborhood {
+                        DetailRow(icon: "mappin.circle", title: "Neighborhood", value: neighborhood)
+                    }
+                    
+                    if let checkIn = quiz.checkInPreference {
+                        DetailRow(icon: "message", title: "Check-in Preference", value: checkIn.rawValue)
+                    }
+                    
+                    if let openingStyle = quiz.openingUpStyle {
+                        DetailRow(icon: "heart", title: "Opening Up Style", value: openingStyle.rawValue)
+                    }
+                    
+                    if let adviceStyle = quiz.adviceStyle {
+                        DetailRow(icon: "lightbulb", title: "Advice Style", value: adviceStyle.rawValue)
+                    }
+                    
+                    if !quiz.currentChallenges.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Hobbies")
+                            Text("Current Challenges")
                                 .font(.headline)
                             FlowLayout(spacing: 8) {
-                                ForEach(quiz.hobbies, id: \.self) { hobby in
-                                    Text(hobby)
+                                ForEach(quiz.currentChallenges, id: \.self) { challenge in
+                                    Text(challenge.rawValue)
                                         .font(.caption)
                                         .padding(.horizontal, 10)
                                         .padding(.vertical, 6)
@@ -171,18 +187,22 @@ struct MatchCard: View {
                         }
                     }
                     
-                    if !quiz.interests.isEmpty {
+                    if let priority = quiz.priorityValue {
+                        DetailRow(icon: "star", title: "Priority", value: priority.rawValue)
+                    }
+                    
+                    if !quiz.opportunityTypes.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Interests")
+                            Text("Opportunities")
                                 .font(.headline)
                             FlowLayout(spacing: 8) {
-                                ForEach(quiz.interests, id: \.self) { interest in
-                                    Text(interest)
+                                ForEach(quiz.opportunityTypes, id: \.self) { opportunity in
+                                    Text(opportunity.rawValue)
                                         .font(.caption)
                                         .padding(.horizontal, 10)
                                         .padding(.vertical, 6)
-                                        .background(Color.green.opacity(0.2))
-                                        .foregroundColor(.green)
+                                        .background(Color(hex: "#3c6e71").opacity(0.2))
+                                        .foregroundColor(Color(hex: "#3c6e71"))
                                         .cornerRadius(12)
                                 }
                             }
@@ -210,14 +230,6 @@ struct MatchCard: View {
         }
     }
     
-    private func communicationStyleString(_ style: CommunicationStyle) -> String {
-        switch style {
-        case .text: return "Text"
-        case .call: return "Call"
-        case .inPerson: return "In Person"
-        case .mixed: return "Mixed"
-        }
-    }
 }
 
 struct CompactMatchCard: View {
