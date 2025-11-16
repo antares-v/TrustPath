@@ -119,7 +119,6 @@ struct CalendarView: View {
                     }
                 }
             }
-            .navigationTitle("Calendar")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
