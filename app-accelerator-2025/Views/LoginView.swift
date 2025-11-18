@@ -24,15 +24,39 @@ struct LoginView: View {
             Image("TrustPathLogo")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 120, height: 120)
+                .frame(width: 180, height: 180)
+                .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 8)
             
             // Title
-            Text(isSignUp ? "Create Account" : "Welcome Back")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .foregroundColor(Color(hex: "#353535"))
+            if isSignUp {
+                VStack(spacing: 8) {
+                    Text("Create Your")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .foregroundColor(Color(hex: "#353535"))
+                    
+                    Text("TrustPath Account")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(Color(hex: "#284b63"))
+                }
+            } else {
+                VStack(spacing: 8) {
+                    (Text("Welcome Back to ")
+                        .foregroundColor(Color(hex: "#353535"))
+                     +
+                     Text("TrustPath")
+                        .foregroundColor(Color(hex: "#284b63"))
+                        .fontWeight(.bold))
+                    .font(.system(size: 28))
+                    
+                    Text("We're glad you're here.")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+            }
             
-            Text(isSignUp ? "Sign up to get started" : "Sign in to continue")
+            Text(isSignUp ? "Sign up to get started" : "Sign in to continue your journey")
                 .font(.subheadline)
                 .foregroundColor(Color(hex: "#353535"))
             
@@ -101,8 +125,8 @@ struct LoginView: View {
     }
     
     private var canSubmit: Bool {
-        !email.isEmpty && 
-        !password.isEmpty && 
+        !email.isEmpty &&
+        !password.isEmpty &&
         password.count >= 6 && // Minimum password length
         (isSignUp ? !name.isEmpty : true) &&
         isValidEmail(email)
@@ -194,4 +218,3 @@ struct CustomLoginTextFieldStyle: TextFieldStyle {
     LoginView()
         .environmentObject(AppState())
 }
-

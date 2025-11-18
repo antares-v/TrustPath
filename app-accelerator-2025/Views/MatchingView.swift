@@ -67,7 +67,10 @@ struct MatchingView: View {
             .navigationTitle("Find Your Match")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    TrustPathLogo(size: 28)
+                    Image("TrustPathLogo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 28, height: 28)
                 }
             }
             .refreshable {

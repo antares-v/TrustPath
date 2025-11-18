@@ -120,9 +120,18 @@ struct HomeView: View {
                         Image("TrustPathLogo")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 60, height: 60)
+                            .frame(width: 40, height: 40)
+                            .clipShape(Circle())
+                            .overlay(
+                                Circle()
+                                    .stroke(Color(hex: "#284b63").opacity(0.2), lineWidth: 1)
+                            )
                         // Other logos can be added here
                     }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    ProfilePictureButton()
+                        .environmentObject(appState)
                 }
             }
             .task {
@@ -361,6 +370,50 @@ struct NoMatchCard: View {
     }
 }
 
+
+struct ProfilePictureButton: View {
+    @EnvironmentObject var appState: AppState
+    @State private var profileColor: Color = Color(hex: "#284b63")
+    
+    var body: some View {
+        Button(action: {
+            // Could navigate to profile or show menu
+        }) {
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                profileColor,
+                                profileColor.opacity(0.8)
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 36, height: 36)
+                
+                if let user = appState.currentUser {
+                    Text(user.name.prefix(1).uppercased())
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                } else {
+                    Image(systemName: "person.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(.white)
+                }
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+        .onAppear {
+            // Load saved profile color
+            if let user = appState.currentUser,
+               let hexString = UserDefaults.standard.string(forKey: "profileColor_\(user.id.uuidString)") {
+                profileColor = Color(hex: hexString)
+            }
+        }
+    }
+}
 
 #Preview {
     HomeView()

@@ -239,6 +239,30 @@ struct OnboardingStep1View: View {
 struct OnboardingStep2InterestsView: View {
     @Binding var interests: Set<Interest>
     
+    private let columns = [
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
+    ]
+    
+    private let interestItems: [(Interest, String)] = [
+        (.art, "paintpalette.fill"),
+        (.dance, "figure.socialdance"),
+        (.music, "music.note.list"),
+        (.sports, "sportscourt.fill"),
+        (.reading, "book.fill"),
+        (.cooking, "fork.knife"),
+        (.photography, "camera.fill"),
+        (.writing, "pencil.and.outline"),
+        (.gaming, "gamecontroller.fill"),
+        (.fitness, "figure.strengthtraining.functional"),
+        (.gardening, "leaf.fill"),
+        (.crafts, "scissors"),
+        (.technology, "desktopcomputer"),
+        (.travel, "airplane"),
+        (.volunteering, "hands.sparkles.fill")
+    ]
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 30) {
@@ -256,41 +280,99 @@ struct OnboardingStep2InterestsView: View {
                     .font(.subheadline)
                     .foregroundColor(Color(hex: "#353535"))
                 
-                VStack(spacing: 16) {
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 16) {
-                        ForEach(Interest.allCases, id: \.self) { interest in
-                            Button(action: {
-                                if interests.contains(interest) {
-                                    interests.remove(interest)
-                                } else {
-                                    interests.insert(interest)
-                                }
-                            }) {
-                                HStack {
+                VStack(spacing: 20) {
+                    if !interests.isEmpty {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 10) {
+                                ForEach(Array(interests), id: \.self) { interest in
                                     Text(interest.rawValue)
-                                        .font(.headline)
-                                        .foregroundColor(interests.contains(interest) ? .white : Color(hex: "#353535"))
-                                    Spacer()
-                                    if interests.contains(interest) {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .foregroundColor(.white)
-                                    }
+                                        .font(.caption)
+                                        .fontWeight(.semibold)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(Color(hex: "#284b63").opacity(0.15))
+                                        .foregroundColor(Color(hex: "#284b63"))
+                                        .cornerRadius(20)
                                 }
-                                .padding()
-                                .background(interests.contains(interest) ? Color(hex: "#284b63") : Color(hex: "#d9d9d9"))
-                                .cornerRadius(12)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(interests.contains(interest) ? Color(hex: "#284b63") : Color.clear, lineWidth: 2)
-                                )
+                            }
+                            .padding(.horizontal, 40)
+                        }
+                    }
+                    
+                    LazyVGrid(columns: columns, spacing: 12) {
+                        ForEach(interestItems, id: \.0) { item in
+                            InterestCard(
+                                interest: item.0,
+                                icon: item.1,
+                                isSelected: interests.contains(item.0)
+                            )
+                            .onTapGesture {
+                                if interests.contains(item.0) {
+                                    interests.remove(item.0)
+                                } else {
+                                    interests.insert(item.0)
+                                }
                             }
                         }
                     }
+                    .padding(.horizontal, 24)
                 }
-                .padding(.horizontal, 40)
                 .padding(.bottom, 40)
             }
         }
+    }
+}
+
+struct InterestCard: View {
+    let interest: Interest
+    let icon: String
+    let isSelected: Bool
+    
+    var body: some View {
+        VStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 28))
+                .foregroundColor(isSelected ? .white : Color(hex: "#284b63"))
+                .frame(width: 50, height: 50)
+                .background(
+                    Circle()
+                        .fill(isSelected ? Color.white.opacity(0.2) : Color(hex: "#284b63").opacity(0.15))
+                )
+            
+            Text(interest.rawValue)
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundColor(isSelected ? .white : Color(hex: "#353535"))
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+        }
+        .padding(.vertical, 16)
+        .padding(.horizontal, 8)
+        .frame(maxWidth: .infinity)
+        .frame(height: 120)
+        .background(
+            Group {
+                if isSelected {
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color(hex: "#284b63"), Color(hex: "#3c6e71")]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                } else {
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(Color(.systemBackground))
+                }
+            }
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 18)
+                .stroke(isSelected ? Color.white.opacity(0.2) : Color(hex: "#d9d9d9"), lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(isSelected ? 0.15 : 0.05), radius: 10, x: 0, y: 5)
     }
 }
 

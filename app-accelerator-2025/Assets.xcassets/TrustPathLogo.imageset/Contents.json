@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "TrustPathLogo.png",
+      "filename" : "tp.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
@@ -22,4 +22,3 @@
     "preserves-vector-representation" : true
   }
 }
-
