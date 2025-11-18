@@ -213,11 +213,20 @@ struct OnboardingStep1View: View {
                         Text("Date of Birth *")
                             .font(.headline)
                             .foregroundColor(Color(hex: "#353535"))
-                        DatePicker("", selection: $dateOfBirth, displayedComponents: .date)
+                        
+                        HStack {
+                            DatePicker(
+                                "",
+                                selection: $dateOfBirth,
+                                displayedComponents: .date
+                            )
                             .datePickerStyle(.compact)
-                            .padding()
-                            .background(Color(hex: "#d9d9d9"))
-                            .cornerRadius(12)
+                            .labelsHidden() // removes extra spacing
+                            Spacer()         // pushes picker to the left
+                        }
+                        .padding()
+                        .background(Color(hex: "#d9d9d9"))
+                        .cornerRadius(12)
                     }
                     
                     VStack(alignment: .leading, spacing: 8) {
@@ -407,12 +416,18 @@ struct OnboardingStep3View: View {
                         Text("Preferred Language")
                             .font(.headline)
                             .foregroundColor(Color(hex: "#353535"))
-                        Picker("Language", selection: $preferredLanguage) {
-                            ForEach(languages, id: \.self) { language in
-                                Text(language).tag(language)
+                        
+                        HStack {
+                            Picker("Language", selection: $preferredLanguage) {
+                                ForEach(languages, id: \.self) { language in
+                                    Text(language).tag(language)
+                                }
                             }
+                            .pickerStyle(.menu)
+                            .labelsHidden()
+
+                            Spacer()   // pushes picker to the left
                         }
-                        .pickerStyle(.menu)
                         .padding()
                         .background(Color(hex: "#d9d9d9"))
                         .cornerRadius(12)
