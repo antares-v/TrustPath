@@ -3,36 +3,15 @@ import Foundation
 struct MatchingCriteria {
     var minMatchScore: Double = 0.5
     
-    // Legacy fields for backward compatibility
-    var preferredLanguage: String?
-    var preferredNeighborhood: String?
-    
-    // New criteria based on ProfileQuiz categories
+    // Filter criteria based on simplified quiz
     var preferredCheckInStyle: CheckInPreference?
-    var requiredSupportTypes: [SupportType] = []
-    var requiredMentorTypes: [MentorType] = []
-    var requiredOpportunityTypes: [OpportunityType] = []
-    var preferredMeetingFrequency: MeetingFrequency?
-    var preferredSessionType: SessionPreference?
+    var requiredWorkingOn: [WorkingOnMost] = []
+    var requiredRelatableMentor: [RelatableMentor] = []
+    var preferredMentorVibe: MentorVibe?
+    var preferredAge: AgePreference?
     
     func matches(volunteer: UserModel) -> Bool {
         guard let volunteerQuiz = volunteer.profileQuiz else {
-            return false
-        }
-        
-        // Check language preference if specified (legacy)
-        if let preferredLanguage = preferredLanguage,
-           let volunteerLang = volunteerQuiz.languagePreference,
-           !preferredLanguage.isEmpty, !volunteerLang.isEmpty,
-           volunteerLang.lowercased() != preferredLanguage.lowercased() {
-            return false
-        }
-        
-        // Check neighborhood if specified (legacy)
-        if let preferredNeighborhood = preferredNeighborhood,
-           let volunteerNeighborhood = volunteerQuiz.neighborhood,
-           !preferredNeighborhood.isEmpty, !volunteerNeighborhood.isEmpty,
-           volunteerNeighborhood.lowercased() != preferredNeighborhood.lowercased() {
             return false
         }
         
@@ -44,43 +23,34 @@ struct MatchingCriteria {
             }
         }
         
-        // Check required support types
-        if !requiredSupportTypes.isEmpty {
-            if let volunteerSupport = volunteerQuiz.supportType,
-               !requiredSupportTypes.contains(volunteerSupport) {
+        // Check required "working on" types
+        if !requiredWorkingOn.isEmpty {
+            if let volunteerWorking = volunteerQuiz.workingOnMost,
+               !requiredWorkingOn.contains(volunteerWorking) {
                 return false
             }
         }
         
-        // Check required mentor types
-        if !requiredMentorTypes.isEmpty {
-            if let volunteerMentorType = volunteerQuiz.mentorType,
-               !requiredMentorTypes.contains(volunteerMentorType) {
+        // Check required relatable mentor types
+        if !requiredRelatableMentor.isEmpty {
+            if let volunteerRelatable = volunteerQuiz.relatableMentor,
+               !requiredRelatableMentor.contains(volunteerRelatable) {
                 return false
             }
         }
         
-        // Check required opportunity types
-        if !requiredOpportunityTypes.isEmpty {
-            let volunteerOpportunities = Set(volunteerQuiz.opportunityTypes)
-            let requiredSet = Set(requiredOpportunityTypes)
-            if volunteerOpportunities.intersection(requiredSet).isEmpty {
+        // Check preferred mentor vibe
+        if let preferredVibe = preferredMentorVibe,
+           let volunteerVibe = volunteerQuiz.mentorVibe {
+            if preferredVibe != volunteerVibe {
                 return false
             }
         }
         
-        // Check meeting frequency compatibility
-        if let preferredFreq = preferredMeetingFrequency,
-           let volunteerFreq = volunteerQuiz.meetingFrequency {
-            if preferredFreq != volunteerFreq && preferredFreq != .flexible && volunteerFreq != .flexible {
-                return false
-            }
-        }
-        
-        // Check session preference
-        if let preferredSession = preferredSessionType,
-           let volunteerSession = volunteerQuiz.sessionPreference {
-            if preferredSession != volunteerSession && preferredSession != .mixOfBoth && volunteerSession != .mixOfBoth {
+        // Check age preference
+        if let preferredAge = preferredAge,
+           let volunteerAge = volunteerQuiz.agePreference {
+            if preferredAge != volunteerAge && preferredAge != .dontCare && volunteerAge != .dontCare {
                 return false
             }
         }

@@ -5,7 +5,7 @@ enum UserType {
     case volunteer
 }
 
-// MARK: - Onboarding Quiz (Account Creation)
+// MARK: - Onboarding Quiz (Account Creation + Login)
 struct OnboardingQuiz {
     var name: String
     var dateOfBirth: Date
@@ -15,6 +15,12 @@ struct OnboardingQuiz {
     var emergencyContactPhone: String?
     var preferredLanguage: String?
     
+    // Interest/Hobby questions (from previous quiz)
+    var hobbies: [String]
+    var interests: [String]
+    var neighborhood: String?
+    var background: String?
+    
     init(
         name: String,
         dateOfBirth: Date,
@@ -22,7 +28,11 @@ struct OnboardingQuiz {
         address: String? = nil,
         emergencyContactName: String? = nil,
         emergencyContactPhone: String? = nil,
-        preferredLanguage: String? = nil
+        preferredLanguage: String? = nil,
+        hobbies: [String] = [],
+        interests: [String] = [],
+        neighborhood: String? = nil,
+        background: String? = nil
     ) {
         self.name = name
         self.dateOfBirth = dateOfBirth
@@ -31,279 +41,164 @@ struct OnboardingQuiz {
         self.emergencyContactName = emergencyContactName
         self.emergencyContactPhone = emergencyContactPhone
         self.preferredLanguage = preferredLanguage
+        self.hobbies = hobbies
+        self.interests = interests
+        self.neighborhood = neighborhood
+        self.background = background
     }
 }
 
-// MARK: - Profile Matching Quiz Enums
+// MARK: - Profile Matching Quiz Enums (10 Questions)
 
-// Category 1: Trust & Communication Style
-enum ComfortableTalkingStyle: String, CaseIterable {
-    case sharesOwnStory = "Someone who shares their own story"
-    case keepsProfessional = "Someone who keeps it professional"
-    case listensMore = "Someone who listens more than they talk"
-    case givesClearSteps = "Someone who gives clear steps and plans"
+// Question 1: How do you feel most comfortable opening up to someone?
+enum OpeningUpComfort: String, CaseIterable {
+    case sharedStories = "Shared stories"
+    case humor = "Humor"
+    case structure = "Structure"
+    case listening = "Listening"
 }
 
+// Question 2: What kind of person helps you stay on track the best?
+enum StayOnTrackStyle: String, CaseIterable {
+    case blunt = "Blunt"
+    case patient = "Patient"
+    case consistent = "Consistent"
+    case stepByStep = "Step-by-step"
+}
+
+// Question 3: What challenge is hardest for you right now?
+enum HardestChallenge: String, CaseIterable {
+    case poCommunication = "PO communication"
+    case adhdOrganization = "ADHD organization"
+    case schoolWork = "School/work"
+    case environment = "Environment"
+    case housing = "Housing"
+}
+
+// Question 4: What are you trying to work on most?
+enum WorkingOnMost: String, CaseIterable {
+    case job = "Job"
+    case school = "School"
+    case stayingOut = "Staying out"
+    case family = "Family"
+    case personalGrowth = "Personal growth"
+}
+
+// Question 5: What makes a mentor feel relatable to you?
+enum RelatableMentor: String, CaseIterable {
+    case adhd = "ADHD"
+    case secondChances = "Second chances"
+    case pastSupervisionRules = "Past supervision rules"
+    case schoolIssues = "School issues"
+    case jobIssues = "Job issues"
+}
+
+// Question 6: What type of vibe works for you?
+enum MentorVibe: String, CaseIterable {
+    case chill = "Chill"
+    case motivating = "Motivating"
+    case structured = "Structured"
+    case patient = "Patient"
+}
+
+// Question 7: When you're stressed, what do you want someone to do?
+enum StressResponse: String, CaseIterable {
+    case lightenMood = "Lighten mood"
+    case breakThingsDown = "Break things down"
+    case justListen = "Just listen"
+    case pushToAct = "Push to act"
+}
+
+// Question 8: How do you want your mentor to check in with you?
 enum CheckInPreference: String, CaseIterable {
     case text = "Text"
     case call = "Call"
-    case inPersonOnly = "In-person only"
+    case inPerson = "In-person"
     case noPreference = "No preference"
 }
 
-enum OpeningUpStyle: String, CaseIterable {
-    case consistentCheckIns = "Consistent check-ins"
-    case humorRelaxed = "Humor / relaxed conversations"
-    case directHonesty = "Direct honesty"
-    case sharedBackground = "Shared background or experiences"
+// Question 9: Do you want someone close to your age or older?
+enum AgePreference: String, CaseIterable {
+    case close = "Close"
+    case older = "Older"
+    case dontCare = "Don't care"
 }
 
-enum AdviceStyle: String, CaseIterable {
-    case straightforwardBlunt = "Straightforward and blunt"
-    case encouragingPatient = "Encouraging and patient"
-    case stepByStep = "Step-by-step guidance"
-    case figureItOutMyself = "Helping me figure it out myself"
-}
-
-// Category 2: Environment & Stability Needs
-enum CurrentChallenge: String, CaseIterable {
-    case stayingAwayFromPeople = "Staying away from certain people or environments"
-    case keepingUpWithPO = "Keeping up with PO communication"
-    case schoolWorkConsistency = "School or work consistency"
-    case mentalHealthFocus = "Mental health / focus issues (ADHD, stress)"
-    case housingFoodStability = "Housing or food stability"
-}
-
-enum SupportType: String, CaseIterable {
-    case remindStepsDeadlines = "Someone to remind me of steps / deadlines"
-    case thinkLongTerm = "Someone who helps me think long-term"
-    case talkWhenOverwhelming = "Someone to talk to when things get overwhelming"
-    case goneThroughSystem = "Someone who has gone through the system before"
-}
-
+// Question 10: Are you trying to change your social circle right now?
 enum ChangingSocialCircle: String, CaseIterable {
     case yes = "Yes"
     case no = "No"
-    case tryingComplicated = "Trying, but it's complicated"
+    case tryingButComplicated = "Trying but complicated"
 }
 
-// Category 3: Values & Motivation
-enum PriorityValue: String, CaseIterable {
-    case gettingJob = "Getting a job / building skills"
-    case finishingSchool = "Finishing school / diploma"
-    case stableHousing = "Getting stable housing"
-    case stayingOutOfSystem = "Staying out of the system"
-    case helpingFamily = "Helping your family"
-    case personalGrowth = "Personal growth / changing habits"
-}
-
-enum MentorType: String, CaseIterable {
-    case beenThroughSystem = "Someone who's been through the system"
-    case careerFocused = "Someone focused on career opportunities"
-    case emotionalSupport = "Someone strong in emotional support"
-    case organizationADHD = "Someone who helps with organization and ADHD tools"
-    case justConsistent = "Doesn't matter — just someone consistent"
-}
-
-enum TrustValue: String, CaseIterable {
-    case honesty = "Honesty"
-    case loyalty = "Loyalty"
-    case understanding = "Understanding"
-    case senseOfHumor = "A sense of humor"
-    case goalOriented = "Goal-oriented mindset"
-}
-
-// Category 4: Lived Experience Matching
-enum RelatableExperience: String, CaseIterable {
-    case struggledWithADHD = "Someone who struggled with focus or ADHD"
-    case restartAfterMessingUp = "Someone who had to restart after messing up"
-    case understandsSupervision = "Someone who understands strict supervision rules"
-    case dealtWithBarriers = "Someone who dealt with school or job barriers"
-    case similarNeighborhood = "Someone who grew up in a similar neighborhood"
-}
-
-enum ComfortableTalkingAbout: String, CaseIterable {
-    case POCommunication = "PO communication and technical requirements"
-    case stressAnger = "Stress, anger, or pressure"
-    case schoolCredit = "School/credit recovery"
-    case tradesJobs = "Getting into trades or jobs"
-    case familyIssues = "Family issues"
-}
-
-enum MentorAgePreference: String, CaseIterable {
-    case closerToAge = "Is closer to your age"
-    case olderWithExperience = "Is older with more experience"
-    case doesntMatter = "Doesn't matter"
-}
-
-// Category 5: Practical Support Needs
-enum OpportunityType: String, CaseIterable {
-    case jobReadiness = "Job readiness"
-    case tradesHandsOn = "Trades / hands-on work"
-    case gedDiploma = "GED or diploma help"
-    case collegePostSecondary = "College / post-secondary guidance"
-    case digitalLiteracy = "Digital literacy (learning tech)"
-    case notSureYet = "Not sure yet"
-}
-
-enum BarrierType: String, CaseIterable {
-    case transportation = "Transportation"
-    case schedulingRemembering = "Scheduling / remembering appointments"
-    case childcare = "Childcare"
-    case schoolAttendance = "School attendance"
-    case substanceScreening = "Substance screening"
-    case fearOfJudgment = "Fear of judgment / low trust"
-    case noneOfAbove = "None of the above"
-}
-
-// Category 6: Personality Fit
-enum MentorEnergy: String, CaseIterable {
-    case chillRelaxed = "Chill / relaxed"
-    case highEnergyMotivating = "High energy / motivating"
-    case structuredOrganized = "Structured and organized"
-    case patientSlowPaced = "Patient and slow-paced"
-    case mix = "A mix"
-}
-
-enum StressResponsePreference: String, CaseIterable {
-    case lightensMood = "Lightens the mood"
-    case breaksDownLogically = "Helps break things down logically"
-    case justListens = "Just listens"
-    case pushesToAct = "Pushes you to act"
-    case givesSpaceChecksIn = "Gives you space but checks in later"
-}
-
-// Category 7: Commitment & Meeting Style
-enum MeetingFrequency: String, CaseIterable {
-    case oncePerWeek = "1× per week"
-    case twicePerWeek = "2× per week"
-    case threeTimesPerWeek = "3× per week (like SAVE / mentorship programs)"
-    case flexible = "Flexible"
-}
-
-enum PreferredTimeOfDay: String, CaseIterable {
-    case morning = "Morning"
-    case afternoon = "Afternoon"
-    case evening = "Evening"
-    case weekendsOnly = "Weekends only"
-}
-
-enum SessionPreference: String, CaseIterable {
-    case oneOnOne = "One-on-one"
-    case groupsOnly = "Groups only"
-    case mixOfBoth = "Mix of both"
-}
-
-// MARK: - Profile Matching Quiz (Settings)
+// MARK: - Profile Matching Quiz (Settings - 10 Questions)
 struct ProfileQuiz {
-    // Category 1: Trust & Communication Style
-    var comfortableTalkingStyle: ComfortableTalkingStyle?
-    var checkInPreference: CheckInPreference?
-    var openingUpStyle: OpeningUpStyle?
-    var adviceStyle: AdviceStyle?
+    // Question 1
+    var openingUpComfort: OpeningUpComfort?
     
-    // Category 2: Environment & Stability Needs
-    var currentChallenges: [CurrentChallenge]  // Multiple selection
-    var supportType: SupportType?
+    // Question 2
+    var stayOnTrackStyle: StayOnTrackStyle?
+    
+    // Question 3
+    var hardestChallenge: HardestChallenge?
+    
+    // Question 4
+    var workingOnMost: WorkingOnMost?
+    
+    // Question 5
+    var relatableMentor: RelatableMentor?
+    
+    // Question 6
+    var mentorVibe: MentorVibe?
+    
+    // Question 7
+    var stressResponse: StressResponse?
+    
+    // Question 8
+    var checkInPreference: CheckInPreference?
+    
+    // Question 9
+    var agePreference: AgePreference?
+    
+    // Question 10
     var changingSocialCircle: ChangingSocialCircle?
     
-    // Category 3: Values & Motivation
-    var priorityValue: PriorityValue?
-    var mentorType: MentorType?
-    var trustValue: TrustValue?
-    
-    // Category 4: Lived Experience Matching
-    var relatableExperiences: [RelatableExperience]  // Multiple selection
-    var comfortableTalkingAbout: [ComfortableTalkingAbout]  // Multiple selection
-    var mentorAgePreference: MentorAgePreference?
-    
-    // Category 5: Practical Support Needs
-    var opportunityTypes: [OpportunityType]  // Multiple selection
-    var barriers: [BarrierType]  // Multiple selection
-    
-    // Category 6: Personality Fit
-    var mentorEnergy: MentorEnergy?
-    var stressResponsePreference: StressResponsePreference?
-    
-    // Category 7: Commitment & Meeting Style
-    var meetingFrequency: MeetingFrequency?
-    var preferredTimeOfDay: PreferredTimeOfDay?
-    var sessionPreference: SessionPreference?
-    
-    // Legacy fields for backward compatibility (can be removed later)
-    var languagePreference: String?
-    var neighborhood: String?
-    
     init(
-        comfortableTalkingStyle: ComfortableTalkingStyle? = nil,
+        openingUpComfort: OpeningUpComfort? = nil,
+        stayOnTrackStyle: StayOnTrackStyle? = nil,
+        hardestChallenge: HardestChallenge? = nil,
+        workingOnMost: WorkingOnMost? = nil,
+        relatableMentor: RelatableMentor? = nil,
+        mentorVibe: MentorVibe? = nil,
+        stressResponse: StressResponse? = nil,
         checkInPreference: CheckInPreference? = nil,
-        openingUpStyle: OpeningUpStyle? = nil,
-        adviceStyle: AdviceStyle? = nil,
-        currentChallenges: [CurrentChallenge] = [],
-        supportType: SupportType? = nil,
-        changingSocialCircle: ChangingSocialCircle? = nil,
-        priorityValue: PriorityValue? = nil,
-        mentorType: MentorType? = nil,
-        trustValue: TrustValue? = nil,
-        relatableExperiences: [RelatableExperience] = [],
-        comfortableTalkingAbout: [ComfortableTalkingAbout] = [],
-        mentorAgePreference: MentorAgePreference? = nil,
-        opportunityTypes: [OpportunityType] = [],
-        barriers: [BarrierType] = [],
-        mentorEnergy: MentorEnergy? = nil,
-        stressResponsePreference: StressResponsePreference? = nil,
-        meetingFrequency: MeetingFrequency? = nil,
-        preferredTimeOfDay: PreferredTimeOfDay? = nil,
-        sessionPreference: SessionPreference? = nil,
-        languagePreference: String? = nil,
-        neighborhood: String? = nil
+        agePreference: AgePreference? = nil,
+        changingSocialCircle: ChangingSocialCircle? = nil
     ) {
-        self.comfortableTalkingStyle = comfortableTalkingStyle
+        self.openingUpComfort = openingUpComfort
+        self.stayOnTrackStyle = stayOnTrackStyle
+        self.hardestChallenge = hardestChallenge
+        self.workingOnMost = workingOnMost
+        self.relatableMentor = relatableMentor
+        self.mentorVibe = mentorVibe
+        self.stressResponse = stressResponse
         self.checkInPreference = checkInPreference
-        self.openingUpStyle = openingUpStyle
-        self.adviceStyle = adviceStyle
-        self.currentChallenges = currentChallenges
-        self.supportType = supportType
+        self.agePreference = agePreference
         self.changingSocialCircle = changingSocialCircle
-        self.priorityValue = priorityValue
-        self.mentorType = mentorType
-        self.trustValue = trustValue
-        self.relatableExperiences = relatableExperiences
-        self.comfortableTalkingAbout = comfortableTalkingAbout
-        self.mentorAgePreference = mentorAgePreference
-        self.opportunityTypes = opportunityTypes
-        self.barriers = barriers
-        self.mentorEnergy = mentorEnergy
-        self.stressResponsePreference = stressResponsePreference
-        self.meetingFrequency = meetingFrequency
-        self.preferredTimeOfDay = preferredTimeOfDay
-        self.sessionPreference = sessionPreference
-        self.languagePreference = languagePreference
-        self.neighborhood = neighborhood
     }
     
     // Helper to check if quiz is complete
     var isComplete: Bool {
-        return comfortableTalkingStyle != nil &&
+        return openingUpComfort != nil &&
+               stayOnTrackStyle != nil &&
+               hardestChallenge != nil &&
+               workingOnMost != nil &&
+               relatableMentor != nil &&
+               mentorVibe != nil &&
+               stressResponse != nil &&
                checkInPreference != nil &&
-               openingUpStyle != nil &&
-               adviceStyle != nil &&
-               !currentChallenges.isEmpty &&
-               supportType != nil &&
-               changingSocialCircle != nil &&
-               priorityValue != nil &&
-               mentorType != nil &&
-               trustValue != nil &&
-               !relatableExperiences.isEmpty &&
-               !comfortableTalkingAbout.isEmpty &&
-               mentorAgePreference != nil &&
-               !opportunityTypes.isEmpty &&
-               !barriers.isEmpty &&
-               mentorEnergy != nil &&
-               stressResponsePreference != nil &&
-               meetingFrequency != nil &&
-               preferredTimeOfDay != nil &&
-               sessionPreference != nil
+               agePreference != nil &&
+               changingSocialCircle != nil
     }
 }
 
@@ -313,7 +208,7 @@ struct UserModel {
     let userType: UserType
     let name: String
     let email: String
-    var onboardingQuiz: OnboardingQuiz?  // Completed during account creation
+    var onboardingQuiz: OnboardingQuiz?  // Completed during account creation/login
     var profileQuiz: ProfileQuiz?  // Completed in settings for matching
     var matchedVolunteerId: UUID?  // For clients
     var matchedClientIds: [UUID]  // For volunteers
