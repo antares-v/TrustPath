@@ -65,6 +65,11 @@ struct MatchingView: View {
                 .padding(.vertical)
             }
             .navigationTitle("Find Your Match")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    TrustPathLogo(size: 28)
+                }
+            }
             .refreshable {
                 await loadMatches()
             }

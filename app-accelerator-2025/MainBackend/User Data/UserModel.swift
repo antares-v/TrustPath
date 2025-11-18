@@ -5,6 +5,25 @@ enum UserType {
     case volunteer
 }
 
+// MARK: - Interests/Hobbies
+enum Interest: String, CaseIterable {
+    case art = "Art"
+    case dance = "Dance"
+    case music = "Music"
+    case sports = "Sports"
+    case reading = "Reading"
+    case cooking = "Cooking"
+    case photography = "Photography"
+    case writing = "Writing"
+    case gaming = "Gaming"
+    case fitness = "Fitness"
+    case gardening = "Gardening"
+    case crafts = "Crafts"
+    case technology = "Technology"
+    case travel = "Travel"
+    case volunteering = "Volunteering"
+}
+
 // MARK: - Onboarding Quiz (Account Creation)
 struct OnboardingQuiz {
     var name: String
@@ -14,6 +33,7 @@ struct OnboardingQuiz {
     var emergencyContactName: String?
     var emergencyContactPhone: String?
     var preferredLanguage: String?
+    var interests: [Interest]  // New field for interests
     
     init(
         name: String,
@@ -22,7 +42,8 @@ struct OnboardingQuiz {
         address: String? = nil,
         emergencyContactName: String? = nil,
         emergencyContactPhone: String? = nil,
-        preferredLanguage: String? = nil
+        preferredLanguage: String? = nil,
+        interests: [Interest] = []
     ) {
         self.name = name
         self.dateOfBirth = dateOfBirth
@@ -31,6 +52,7 @@ struct OnboardingQuiz {
         self.emergencyContactName = emergencyContactName
         self.emergencyContactPhone = emergencyContactPhone
         self.preferredLanguage = preferredLanguage
+        self.interests = interests
     }
 }
 

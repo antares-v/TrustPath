@@ -33,23 +33,29 @@ struct ContentView: View {
                         .environmentObject(appState)
                 } else {
                     TabView(selection: $selectedTab) {
+                        HomeView()
+                            .tabItem {
+                                Label("Home", systemImage: "house.fill")
+                            }
+                            .tag(0)
+                        
                         MatchingView()
                             .tabItem {
                                 Label("Matches", systemImage: "person.2.circle")
                             }
-                            .tag(0)
+                            .tag(1)
                         
                         CalendarView()
                             .tabItem {
                                 Label("Calendar", systemImage: "calendar")
                             }
-                            .tag(1)
+                            .tag(2)
                         
                         ProfileView()
                             .tabItem {
                                 Label("Profile", systemImage: "person.circle")
                             }
-                            .tag(2)
+                            .tag(3)
                     }
                     .environmentObject(appState)
                 }

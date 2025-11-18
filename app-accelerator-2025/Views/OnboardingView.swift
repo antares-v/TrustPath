@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct OnboardingView: View {
     @EnvironmentObject var appState: AppState
@@ -15,6 +16,7 @@ struct OnboardingView: View {
     @State private var emergencyContactName: String = ""
     @State private var emergencyContactPhone: String = ""
     @State private var preferredLanguage: String = "English"
+    @State private var interests: Set<Interest> = []
     @State private var encouragingMessage: String = ""
     @State private var goal: String = ""
     
@@ -27,7 +29,7 @@ struct OnboardingView: View {
             
             VStack(spacing: 0) {
                 // Progress indicator
-                ProgressView(value: Double(currentStep + 1), total: 4)
+                ProgressView(value: Double(currentStep + 1), total: 5)
                     .progressViewStyle(LinearProgressViewStyle(tint: Color(hex: "#284b63")))
                     .padding()
                 
@@ -41,27 +43,33 @@ struct OnboardingView: View {
                     )
                         .tag(0)
                     
-                    // Step 2: Address & Language
-                    OnboardingStep2View(
+                    // Step 2: Interests
+                    OnboardingStep2InterestsView(
+                        interests: $interests
+                    )
+                        .tag(1)
+                    
+                    // Step 3: Address & Language
+                    OnboardingStep3View(
                         address: $address,
                         preferredLanguage: $preferredLanguage,
                         languages: languages
                     )
-                        .tag(1)
+                        .tag(2)
                     
-                    // Step 3: Emergency Contact
-                    OnboardingStep3View(
+                    // Step 4: Emergency Contact
+                    OnboardingStep4View(
                         emergencyContactName: $emergencyContactName,
                         emergencyContactPhone: $emergencyContactPhone
                     )
-                        .tag(2)
+                        .tag(3)
                     
-                    // Step 4: Encouraging Message & Goal
-                    OnboardingStep4View(
+                    // Step 5: Encouraging Message & Goal
+                    OnboardingStep5View(
                         encouragingMessage: $encouragingMessage,
                         goal: $goal
                     )
-                        .tag(3)
+                        .tag(4)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 
@@ -83,7 +91,7 @@ struct OnboardingView: View {
                     
                     Button(action: {
                         if canProceed {
-                            if currentStep < 3 {
+                            if currentStep < 4 {
                                 withAnimation {
                                     currentStep += 1
                                 }
@@ -92,7 +100,7 @@ struct OnboardingView: View {
                             }
                         }
                     }) {
-                        Text(currentStep < 3 ? "Next" : "Complete")
+                        Text(currentStep < 4 ? "Next" : "Complete")
                             .foregroundColor(.white)
                             .padding()
                             .frame(minWidth: 100)
@@ -109,9 +117,10 @@ struct OnboardingView: View {
     private var canProceed: Bool {
         switch currentStep {
         case 0: return !name.trimmingCharacters(in: .whitespaces).isEmpty
-        case 1: return true // Address and language are optional
-        case 2: return true // Emergency contact is optional
-        case 3: return !encouragingMessage.trimmingCharacters(in: .whitespaces).isEmpty &&
+        case 1: return !interests.isEmpty // At least one interest required
+        case 2: return true // Address and language are optional
+        case 3: return true // Emergency contact is optional
+        case 4: return !encouragingMessage.trimmingCharacters(in: .whitespaces).isEmpty &&
                       !goal.trimmingCharacters(in: .whitespaces).isEmpty
         default: return false
         }
@@ -133,7 +142,8 @@ struct OnboardingView: View {
             address: address.isEmpty ? nil : address,
             emergencyContactName: emergencyContactName.isEmpty ? nil : emergencyContactName,
             emergencyContactPhone: emergencyContactPhone.isEmpty ? nil : emergencyContactPhone,
-            preferredLanguage: preferredLanguage
+            preferredLanguage: preferredLanguage,
+            interests: Array(interests)
         )
         
         // Update user with onboarding quiz
@@ -178,9 +188,11 @@ struct OnboardingStep1View: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 30) {
-                Image(systemName: "person.circle.fill")
-                    .font(.system(size: 100))
-                    .foregroundColor(Color(hex: "#284b63"))
+                // Logo on first step
+                Image("TrustPathLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 120, height: 120)
                     .padding(.top, 40)
                 
                 Text("Basic Information")
@@ -224,7 +236,65 @@ struct OnboardingStep1View: View {
     }
 }
 
-struct OnboardingStep2View: View {
+struct OnboardingStep2InterestsView: View {
+    @Binding var interests: Set<Interest>
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 30) {
+                Image(systemName: "heart.circle.fill")
+                    .font(.system(size: 100))
+                    .foregroundColor(Color(hex: "#284b63"))
+                    .padding(.top, 40)
+                
+                Text("Your Interests")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(Color(hex: "#353535"))
+                
+                Text("Select all that interest you")
+                    .font(.subheadline)
+                    .foregroundColor(Color(hex: "#353535"))
+                
+                VStack(spacing: 16) {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 16) {
+                        ForEach(Interest.allCases, id: \.self) { interest in
+                            Button(action: {
+                                if interests.contains(interest) {
+                                    interests.remove(interest)
+                                } else {
+                                    interests.insert(interest)
+                                }
+                            }) {
+                                HStack {
+                                    Text(interest.rawValue)
+                                        .font(.headline)
+                                        .foregroundColor(interests.contains(interest) ? .white : Color(hex: "#353535"))
+                                    Spacer()
+                                    if interests.contains(interest) {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(.white)
+                                    }
+                                }
+                                .padding()
+                                .background(interests.contains(interest) ? Color(hex: "#284b63") : Color(hex: "#d9d9d9"))
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(interests.contains(interest) ? Color(hex: "#284b63") : Color.clear, lineWidth: 2)
+                                )
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 40)
+                .padding(.bottom, 40)
+            }
+        }
+    }
+}
+
+struct OnboardingStep3View: View {
     @Binding var address: String
     @Binding var preferredLanguage: String
     let languages: [String]
@@ -273,7 +343,7 @@ struct OnboardingStep2View: View {
     }
 }
 
-struct OnboardingStep3View: View {
+struct OnboardingStep4View: View {
     @Binding var emergencyContactName: String
     @Binding var emergencyContactPhone: String
     
@@ -319,7 +389,7 @@ struct OnboardingStep3View: View {
     }
 }
 
-struct OnboardingStep4View: View {
+struct OnboardingStep5View: View {
     @Binding var encouragingMessage: String
     @Binding var goal: String
     

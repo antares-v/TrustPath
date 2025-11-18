@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import UIKit
 import Foundation
 
 struct LoginView: View {
@@ -19,10 +20,11 @@ struct LoginView: View {
         VStack(spacing: 30) {
             Spacer()
             
-            // Logo/Icon
-            Image(systemName: "person.2.circle.fill")
-                .font(.system(size: 80))
-                .foregroundColor(Color(hex: "#284b63"))
+            // Logo
+            Image("TrustPathLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 120, height: 120)
             
             // Title
             Text(isSignUp ? "Create Account" : "Welcome Back")

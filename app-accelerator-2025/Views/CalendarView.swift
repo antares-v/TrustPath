@@ -120,6 +120,9 @@ struct CalendarView: View {
                 }
             }
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    TrustPathLogo(size: 28)
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
                         showingAddEvent = true

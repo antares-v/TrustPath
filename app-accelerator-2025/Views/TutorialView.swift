@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct TutorialView: View {
     @Binding var isPresented: Bool
@@ -122,9 +123,17 @@ struct TutorialPageView: View {
         VStack(spacing: 30) {
             Spacer()
             
-            Image(systemName: page.icon)
-                .font(.system(size: 100))
-                .foregroundColor(Color(hex: "#284b63"))
+            // Show logo on first page, icon on others
+            if page.title == "Welcome!" {
+                Image("TrustPathLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 150, height: 150)
+            } else {
+                Image(systemName: page.icon)
+                    .font(.system(size: 100))
+                    .foregroundColor(Color(hex: "#284b63"))
+            }
             
             Text(page.title)
                 .font(.largeTitle)
