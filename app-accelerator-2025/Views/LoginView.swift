@@ -41,7 +41,7 @@ struct LoginView: View {
                         .foregroundColor(Color(hex: "#284b63"))
                 }
             } else {
-                VStack(spacing: 8) {
+                VStack(spacing: 15) {
                     (Text("Welcome Back to ")
                         .foregroundColor(Color(hex: "#353535"))
                      +

@@ -498,6 +498,11 @@ struct OnboardingStep5View: View {
                     .foregroundColor(Color(hex: "#284b63"))
                     .padding(.top, 40)
                 
+                Text("Motivation")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(Color(hex: "#353535"))
+                
                 VStack(alignment: .leading, spacing: 20) {
                     Text("What's an encouraging message you would like someone to say to you? *")
                         .font(.headline)
@@ -506,6 +511,7 @@ struct OnboardingStep5View: View {
                     TextEditor(text: $encouragingMessage)
                         .frame(height: 100)
                         .padding(8)
+                        .scrollContentBackground(.hidden)
                         .background(Color(hex: "#d9d9d9"))
                         .cornerRadius(12)
                         .overlay(
@@ -521,6 +527,7 @@ struct OnboardingStep5View: View {
                     TextEditor(text: $goal)
                         .frame(height: 100)
                         .padding(8)
+                        .scrollContentBackground(.hidden)
                         .background(Color(hex: "#d9d9d9"))
                         .cornerRadius(12)
                         .overlay(
@@ -541,10 +548,6 @@ struct CustomOnboardingTextFieldStyle: TextFieldStyle {
             .padding()
             .background(Color(hex: "#d9d9d9"))
             .cornerRadius(12)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color(hex: "#284b63"), lineWidth: 2)
-            )
     }
 }
 
