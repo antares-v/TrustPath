@@ -4,15 +4,18 @@ class MatchingService {
     private let engine: MatchingEngine
     private let userService: UserService
     private let calendarService: CalendarService
+    private let batchMatchingService: BatchMatchingService
     
     init(
         engine: MatchingEngine = MatchingEngine(),
         userService: UserService = UserService(),
-        calendarService: CalendarService = CalendarService()
+        calendarService: CalendarService = CalendarService(),
+        batchMatchingService: BatchMatchingService = BatchMatchingService()
     ) {
         self.engine = engine
         self.userService = userService
         self.calendarService = calendarService
+        self.batchMatchingService = batchMatchingService
     }
     
     func findMatches(for clientId: UUID, with criteria: MatchingCriteria = MatchingCriteria()) throws -> [MatchResult] {
@@ -212,6 +215,48 @@ class MatchingService {
         }
         
         return profiles
+    }
+    
+    // MARK: - Batch Matching (Three-Stage Pipeline)
+    
+    /// Performs optimal batch matching using the three-stage pipeline:
+    /// 1. Hard Filtering
+    /// 2. Weighted Compatibility Scoring
+    /// 3. Hungarian Algorithm for global assignment
+    /// - Parameters:
+    ///   - clientIds: Optional array of specific client IDs to match. If nil, matches all unmatched clients.
+    ///   - maxClientsPerVolunteer: Maximum clients per volunteer (default: 3)
+    ///   - minScore: Minimum compatibility score to accept (default: 0.0)
+    /// - Returns: BatchMatchingResult with optimal assignments
+    func performBatchMatching(
+        clientIds: [UUID]? = nil,
+        maxClientsPerVolunteer: Int = 3,
+        minScore: Double = 0.0
+    ) throws -> BatchMatchingResult {
+        // Get all clients (filtered if specific IDs provided)
+        let allClients = try userService.getClients()
+        let clientsToMatch: [UserModel]
+        if let clientIds = clientIds {
+            clientsToMatch = allClients.filter { clientIds.contains($0.id) }
+        } else {
+            clientsToMatch = allClients.filter { $0.matchedVolunteerId == nil }
+        }
+        
+        // Get all volunteers
+        let volunteers = try userService.getVolunteers()
+        
+        // Perform batch matching
+        let result = try batchMatchingService.performBatchMatching(
+            clients: clientsToMatch,
+            volunteers: volunteers,
+            maxClientsPerVolunteer: maxClientsPerVolunteer,
+            minScore: minScore
+        )
+        
+        // Apply assignments to database
+        try batchMatchingService.applyBatchAssignments(result)
+        
+        return result
     }
 }
 
