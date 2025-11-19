@@ -33,7 +33,9 @@ class MatchingService {
         
         let allVolunteers = try userService.getVolunteers()
         let availableVolunteers = allVolunteers.filter { volunteer in
-            volunteer.profileQuiz != nil && criteria.matches(volunteer: volunteer)
+            volunteer.profileQuiz != nil &&
+            volunteer.profileQuiz?.isComplete == true &&
+            criteria.matches(volunteer: volunteer)
         }
         
         guard !availableVolunteers.isEmpty else {
