@@ -33,11 +33,8 @@ struct OnboardingQuiz {
     var emergencyContactName: String?
     var emergencyContactPhone: String?
     var preferredLanguage: String?
-    var interests: [Interest]  // New field for interests
-    
-    // Interest/Hobby questions (from previous quiz)
+    var interests: [Interest]  // Interests using Interest enum
     var hobbies: [String]
-    var interests: [String]
     var neighborhood: String?
     var background: String?
     
@@ -49,7 +46,10 @@ struct OnboardingQuiz {
         emergencyContactName: String? = nil,
         emergencyContactPhone: String? = nil,
         preferredLanguage: String? = nil,
-        interests: [Interest] = []
+        interests: [Interest] = [],
+        hobbies: [String] = [],
+        neighborhood: String? = nil,
+        background: String? = nil
     ) {
         self.name = name
         self.dateOfBirth = dateOfBirth
@@ -58,8 +58,8 @@ struct OnboardingQuiz {
         self.emergencyContactName = emergencyContactName
         self.emergencyContactPhone = emergencyContactPhone
         self.preferredLanguage = preferredLanguage
-        self.hobbies = hobbies
         self.interests = interests
+        self.hobbies = hobbies
         self.neighborhood = neighborhood
         self.background = background
     }

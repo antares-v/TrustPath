@@ -154,67 +154,71 @@ struct MatchCard: View {
             .background(Color(.systemGray6))
             .cornerRadius(12)
             
-            // Profile Details
-            if let quiz = match.volunteer.profileQuiz {
+            // Basic Info from Onboarding Quiz
+            if let onboarding = match.volunteer.onboardingQuiz {
                 VStack(alignment: .leading, spacing: 12) {
-                    if let language = quiz.languagePreference {
+                    if let language = onboarding.preferredLanguage {
                         DetailRow(icon: "globe", title: "Language", value: language)
                     }
                     
-                    if let neighborhood = quiz.neighborhood {
+                    if let neighborhood = onboarding.neighborhood {
                         DetailRow(icon: "mappin.circle", title: "Neighborhood", value: neighborhood)
                     }
+                }
+            }
+            
+            // Interests
+            if let onboarding = match.volunteer.onboardingQuiz, !onboarding.interests.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Interests")
+                        .font(.headline)
+                    FlowLayout(spacing: 8) {
+                        ForEach(onboarding.interests, id: \.self) { interest in
+                            Text(interest.rawValue)
+                                .font(.caption)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(Color(hex: "#284b63").opacity(0.2))
+                                .foregroundColor(Color(hex: "#284b63"))
+                                .cornerRadius(12)
+                        }
+                    }
+                }
+            }
+            
+            // Values from Profile Quiz
+            if let quiz = match.volunteer.profileQuiz {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Values & Preferences")
+                        .font(.headline)
+                        .padding(.top, 8)
                     
                     if let checkIn = quiz.checkInPreference {
                         DetailRow(icon: "message", title: "Check-in Preference", value: checkIn.rawValue)
                     }
                     
-                    if let openingStyle = quiz.openingUpStyle {
-                        DetailRow(icon: "heart", title: "Opening Up Style", value: openingStyle.rawValue)
+                    if let openingComfort = quiz.openingUpComfort {
+                        DetailRow(icon: "heart", title: "Opening Up Style", value: openingComfort.rawValue)
                     }
                     
-                    if let adviceStyle = quiz.adviceStyle {
-                        DetailRow(icon: "lightbulb", title: "Advice Style", value: adviceStyle.rawValue)
+                    if let stayOnTrack = quiz.stayOnTrackStyle {
+                        DetailRow(icon: "target", title: "Stay On Track Style", value: stayOnTrack.rawValue)
                     }
                     
-                    if !quiz.currentChallenges.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Current Challenges")
-                                .font(.headline)
-                            FlowLayout(spacing: 8) {
-                                ForEach(quiz.currentChallenges, id: \.self) { challenge in
-                                    Text(challenge.rawValue)
-                                        .font(.caption)
-                                        .padding(.horizontal, 10)
-                                        .padding(.vertical, 6)
-                                        .background(Color(hex: "#284b63").opacity(0.2))
-                                        .foregroundColor(Color(hex: "#284b63"))
-                                        .cornerRadius(12)
-                                }
-                            }
-                        }
+                    if let vibe = quiz.mentorVibe {
+                        DetailRow(icon: "sparkles", title: "Mentor Vibe", value: vibe.rawValue)
                     }
                     
-                    if let priority = quiz.priorityValue {
-                        DetailRow(icon: "star", title: "Priority", value: priority.rawValue)
+                    if let stressResponse = quiz.stressResponse {
+                        DetailRow(icon: "brain.head.profile", title: "Stress Response", value: stressResponse.rawValue)
                     }
                     
-                    if !quiz.opportunityTypes.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Opportunities")
-                                .font(.headline)
-                            FlowLayout(spacing: 8) {
-                                ForEach(quiz.opportunityTypes, id: \.self) { opportunity in
-                                    Text(opportunity.rawValue)
-                                        .font(.caption)
-                                        .padding(.horizontal, 10)
-                                        .padding(.vertical, 6)
-                                        .background(Color(hex: "#3c6e71").opacity(0.2))
-                                        .foregroundColor(Color(hex: "#3c6e71"))
-                                        .cornerRadius(12)
-                                }
-                            }
-                        }
+                    if let workingOn = quiz.workingOnMost {
+                        DetailRow(icon: "briefcase", title: "Working On", value: workingOn.rawValue)
+                    }
+                    
+                    if let relatable = quiz.relatableMentor {
+                        DetailRow(icon: "person.2", title: "Relatable Experience", value: relatable.rawValue)
                     }
                 }
             }
@@ -397,44 +401,106 @@ struct SchedulerView: View {
     
     var body: some View {
         NavigationView {
-            Form {
-                Section("Meeting Details") {
-                    TextField("Meeting Title", text: $title)
-                    DatePicker("Date", selection: $selectedDate, displayedComponents: .date)
-                    DatePicker("Time", selection: $selectedTime, displayedComponents: .hourAndMinute)
-                    
-                    Picker("Duration", selection: $duration) {
-                        Text("30 minutes").tag(TimeInterval(1800))
-                        Text("1 hour").tag(TimeInterval(3600))
-                        Text("1.5 hours").tag(TimeInterval(5400))
-                        Text("2 hours").tag(TimeInterval(7200))
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Mini Calendar
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Select Date")
+                            .font(.headline)
+                            .foregroundColor(Color(hex: "#353535"))
+                        
+                        MiniCalendarView(selectedDate: $selectedDate)
+                            .padding()
+                            .background(Color(.systemGray6))
+                            .cornerRadius(12)
                     }
-                }
-                
-                Section("Location") {
-                    TextField("Meeting location (optional)", text: $location)
-                }
-                
-                Section("Notes") {
-                    TextEditor(text: $notes)
-                        .frame(height: 100)
-                }
-                
-                Section {
+                    .padding(.horizontal)
+                    
+                    // Time Selection
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Select Time")
+                            .font(.headline)
+                            .foregroundColor(Color(hex: "#353535"))
+                        
+                        DatePicker("", selection: $selectedTime, displayedComponents: .hourAndMinute)
+                            .datePickerStyle(.wheel)
+                            .labelsHidden()
+                            .padding()
+                            .background(Color(.systemGray6))
+                            .cornerRadius(12)
+                    }
+                    .padding(.horizontal)
+                    
+                    // Meeting Details
+                    VStack(alignment: .leading, spacing: 16) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Meeting Title")
+                                .font(.headline)
+                                .foregroundColor(Color(hex: "#353535"))
+                            TextField("First Meeting", text: $title)
+                                .textFieldStyle(CustomTextFieldStyle())
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Duration")
+                                .font(.headline)
+                                .foregroundColor(Color(hex: "#353535"))
+                            Picker("Duration", selection: $duration) {
+                                Text("30 minutes").tag(TimeInterval(1800))
+                                Text("1 hour").tag(TimeInterval(3600))
+                                Text("1.5 hours").tag(TimeInterval(5400))
+                                Text("2 hours").tag(TimeInterval(7200))
+                            }
+                            .pickerStyle(.segmented)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Location (Optional)")
+                                .font(.headline)
+                                .foregroundColor(Color(hex: "#353535"))
+                            TextField("Meeting location", text: $location)
+                                .textFieldStyle(CustomTextFieldStyle())
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Notes (Optional)")
+                                .font(.headline)
+                                .foregroundColor(Color(hex: "#353535"))
+                            TextEditor(text: $notes)
+                                .frame(height: 100)
+                                .padding(8)
+                                .background(Color(.systemGray6))
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color(hex: "#d9d9d9"), lineWidth: 1)
+                                )
+                        }
+                    }
+                    .padding(.horizontal)
+                    
+                    // Schedule Button
                     Button(action: {
                         scheduleMeeting()
                     }) {
                         HStack {
                             Spacer()
-                            Text("Schedule Meeting")
+                            Text("Schedule First Meeting")
                                 .fontWeight(.semibold)
+                                .foregroundColor(.white)
                             Spacer()
                         }
+                        .padding()
+                        .background(title.isEmpty ? Color.gray : Color(hex: "#284b63"))
+                        .cornerRadius(12)
                     }
                     .disabled(title.isEmpty)
+                    .padding(.horizontal)
+                    .padding(.bottom)
                 }
+                .padding(.vertical)
             }
-            .navigationTitle("Schedule Meeting")
+            .navigationTitle("Schedule First Meeting")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -449,7 +515,9 @@ struct SchedulerView: View {
                 }
             }
             .onAppear {
-                title = "First Meeting with \(match.volunteer.name)"
+                if title.isEmpty {
+                    title = "First Meeting with \(match.volunteer.name)"
+                }
             }
         }
     }
@@ -483,6 +551,153 @@ struct SchedulerView: View {
         }
     }
 }
+
+struct MiniCalendarView: View {
+    @Binding var selectedDate: Date
+    @State private var currentMonth: Date = Date()
+    
+    private let calendar = Calendar.current
+    private let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        return formatter
+    }()
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            // Month Header
+            HStack {
+                Button(action: {
+                    changeMonth(-1)
+                }) {
+                    Image(systemName: "chevron.left")
+                        .foregroundColor(Color(hex: "#284b63"))
+                }
+                
+                Spacer()
+                
+                Text(dateFormatter.string(from: currentMonth))
+                    .font(.headline)
+                    .foregroundColor(Color(hex: "#353535"))
+                
+                Spacer()
+                
+                Button(action: {
+                    changeMonth(1)
+                }) {
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(Color(hex: "#284b63"))
+                }
+            }
+            
+            // Weekday Headers
+            HStack(spacing: 0) {
+                ForEach(["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], id: \.self) { day in
+                    Text(day)
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity)
+                }
+            }
+            
+            // Calendar Grid
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 8) {
+                ForEach(daysInMonth, id: \.self) { date in
+                    if let date = date {
+                        DayView(
+                            date: date,
+                            isSelected: calendar.isDate(date, inSameDayAs: selectedDate),
+                            isToday: calendar.isDateInToday(date),
+                            isCurrentMonth: calendar.isDate(date, equalTo: currentMonth, toGranularity: .month)
+                        ) {
+                            selectedDate = date
+                        }
+                    } else {
+                        Color.clear
+                            .frame(height: 40)
+                    }
+                }
+            }
+        }
+    }
+    
+    private var daysInMonth: [Date?] {
+        guard let monthInterval = calendar.dateInterval(of: .month, for: currentMonth),
+              let firstDay = calendar.dateInterval(of: .month, for: currentMonth)?.start else {
+            return []
+        }
+        
+        let firstDayWeekday = calendar.component(.weekday, from: firstDay) - 1
+        let daysInMonth = calendar.range(of: .day, in: .month, for: currentMonth)?.count ?? 0
+        
+        var days: [Date?] = []
+        
+        // Add empty cells for days before the first day of the month
+        for _ in 0..<firstDayWeekday {
+            days.append(nil)
+        }
+        
+        // Add days of the month
+        for day in 1...daysInMonth {
+            if let date = calendar.date(byAdding: .day, value: day - 1, to: firstDay) {
+                days.append(date)
+            }
+        }
+        
+        return days
+    }
+    
+    private func changeMonth(_ direction: Int) {
+        if let newMonth = calendar.date(byAdding: .month, value: direction, to: currentMonth) {
+            currentMonth = newMonth
+        }
+    }
+}
+
+struct DayView: View {
+    let date: Date
+    let isSelected: Bool
+    let isToday: Bool
+    let isCurrentMonth: Bool
+    let action: () -> Void
+    
+    private let calendar = Calendar.current
+    
+    var body: some View {
+        Button(action: action) {
+            Text("\(calendar.component(.day, from: date))")
+                .font(.system(size: 14, weight: isSelected ? .bold : .regular))
+                .foregroundColor(dayColor)
+                .frame(width: 40, height: 40)
+                .background(backgroundColor)
+                .cornerRadius(8)
+        }
+    }
+    
+    private var dayColor: Color {
+        if isSelected {
+            return .white
+        } else if !isCurrentMonth {
+            return .secondary.opacity(0.3)
+        } else if isToday {
+            return Color(hex: "#284b63")
+        } else {
+            return Color(hex: "#353535")
+        }
+    }
+    
+    private var backgroundColor: Color {
+        if isSelected {
+            return Color(hex: "#284b63")
+        } else if isToday {
+            return Color(hex: "#284b63").opacity(0.1)
+        } else {
+            return Color.clear
+        }
+    }
+}
+
 
 #Preview {
     MatchingView()

@@ -35,13 +35,8 @@ class DummyAccountGenerator {
         "TV Shows", "Traveling", "Volunteering", "Community Service", "Mentoring"
     ]
     
-    private static let interests = [
-        "Education", "Career Development", "Personal Growth", "Mental Health", "Fitness",
-        "Health & Wellness", "Technology", "Business", "Entrepreneurship", "Art",
-        "Literature", "Science", "History", "Politics", "Social Justice", "Environment",
-        "Sustainability", "Cooking", "Food", "Travel", "Culture", "Languages", "Music",
-        "Sports", "Entertainment", "Gaming", "Photography", "Fashion", "Design"
-    ]
+    // Use Interest enum values for interests
+    private static let interestOptions: [Interest] = Interest.allCases
     
     private static let languages = [
         "English", "Spanish", "French", "German", "Italian", "Portuguese", "Chinese",
@@ -107,7 +102,7 @@ class DummyAccountGenerator {
         let emergencyContactPhone = randomPhoneNumber()
         let preferredLanguage = languages.randomElement() ?? "English"
         let hobbies = randomElements(from: self.hobbies, count: Int.random(in: 2...5))
-        let interests = randomElements(from: self.interests, count: Int.random(in: 2...4))
+        let interests = randomElements(from: interestOptions, count: Int.random(in: 2...4))
         let neighborhood = neighborhoods.randomElement()
         let background = "Generated dummy account for testing purposes"
         
@@ -126,8 +121,8 @@ class DummyAccountGenerator {
             emergencyContactName: emergencyContactName,
             emergencyContactPhone: emergencyContactPhone,
             preferredLanguage: preferredLanguage,
-            hobbies: hobbies,
             interests: interests,
+            hobbies: hobbies,
             neighborhood: neighborhood,
             background: background
         )
@@ -157,7 +152,7 @@ class DummyAccountGenerator {
         let emergencyContactPhone = randomPhoneNumber()
         let preferredLanguage = languages.randomElement() ?? "English"
         let hobbies = randomElements(from: self.hobbies, count: Int.random(in: 2...5))
-        let interests = randomElements(from: self.interests, count: Int.random(in: 2...4))
+        let interests = randomElements(from: interestOptions, count: Int.random(in: 2...4))
         let neighborhood = neighborhoods.randomElement()
         let background = "Generated dummy volunteer account for testing purposes"
         
@@ -172,8 +167,8 @@ class DummyAccountGenerator {
             emergencyContactName: emergencyContactName,
             emergencyContactPhone: emergencyContactPhone,
             preferredLanguage: preferredLanguage,
-            hobbies: hobbies,
             interests: interests,
+            hobbies: hobbies,
             neighborhood: neighborhood,
             background: background
         )

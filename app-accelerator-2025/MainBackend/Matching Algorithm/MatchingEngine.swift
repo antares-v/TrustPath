@@ -124,7 +124,10 @@ class MatchingEngine {
            let volunteerOnboarding = volunteer.onboardingQuiz {
             let bonusWeight = 0.05
             let hobbiesMatch = calculateCommonItemsScore(clientOnboarding.hobbies, volunteerOnboarding.hobbies)
-            let interestsMatch = calculateCommonItemsScore(clientOnboarding.interests, volunteerOnboarding.interests)
+            // Convert Interest enum to String for matching
+            let clientInterests = clientOnboarding.interests.map { $0.rawValue }
+            let volunteerInterests = volunteerOnboarding.interests.map { $0.rawValue }
+            let interestsMatch = calculateCommonItemsScore(clientInterests, volunteerInterests)
             let combinedMatch = (hobbiesMatch + interestsMatch) / 2.0
             score += combinedMatch * bonusWeight
             totalWeight += bonusWeight

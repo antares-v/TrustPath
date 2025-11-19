@@ -28,7 +28,8 @@ extension PeerProfile {
         events: [CalendarEvent],
         matchedDate: Date = Date()
     ) -> PeerProfile {
-        let interests = user.onboardingQuiz?.interests ?? []
+        // Convert Interest enum to String array for display
+        let interests = user.onboardingQuiz?.interests.map { $0.rawValue } ?? []
         let hobbies = user.onboardingQuiz?.hobbies ?? []
         
         let upcomingEvents = events
