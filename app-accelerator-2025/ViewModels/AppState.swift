@@ -64,6 +64,10 @@ class AppState: ObservableObject {
                 user.profileQuiz = quiz
                 currentUser = user
             }
+            
+            // Create dummy volunteers after profile quiz is submitted
+            // This ensures at least one volunteer matches the current user's profile quiz
+            await createDummyVolunteers()
         } catch {
             errorMessage = "Failed to submit quiz: \(error.localizedDescription)"
         }
@@ -182,6 +186,30 @@ class AppState: ObservableObject {
             try calendarService.deleteEvent(event)
         } catch {
             errorMessage = "Failed to delete event: \(error.localizedDescription)"
+        }
+    }
+    
+    func createDummyVolunteers() async {
+        guard let userId = currentUser?.id else { return }
+        
+        // Don't show loading indicator for this background task
+        do {
+            // Check if volunteers already exist
+            let existingVolunteers = try userService.getVolunteers()
+            if !existingVolunteers.isEmpty {
+                // Volunteers already exist, don't create more
+                return
+            }
+            
+            // Create dummy volunteers with at least one matching the current user
+            _ = try DummyAccountGenerator.createAndSaveDummyVolunteers(
+                volunteerCount: 10,
+                matchingClientId: userId,
+                using: userService
+            )
+        } catch {
+            // Silently fail - don't show error for dummy account creation
+            print("Failed to create dummy volunteers: \(error.localizedDescription)")
         }
     }
 }

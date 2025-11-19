@@ -250,36 +250,181 @@ class DummyAccountGenerator {
         return volunteer
     }
     
-    /// Creates and saves multiple dummy accounts
-    static func createAndSaveDummyAccounts(
-        clientCount: Int = 5,
+    /// Generates a dummy volunteer that matches a given client's profile quiz
+    /// This ensures at least one volunteer will have a high match score with the client
+    static func generateMatchingDummyVolunteer(for client: UserModel) -> UserModel {
+        let firstName = firstNames.randomElement() ?? "Jane"
+        let lastName = lastNames.randomElement() ?? "Smith"
+        let name = "\(firstName) \(lastName)"
+        let email = randomEmail(firstName: firstName, lastName: lastName)
+        let dateOfBirth = randomDateOfBirth(minAge: 25, maxAge: 65)
+        let phoneNumber = randomPhoneNumber()
+        let address = randomAddress()
+        let emergencyContactName = "\(firstNames.randomElement() ?? "John") \(lastNames.randomElement() ?? "Doe")"
+        let emergencyContactPhone = randomPhoneNumber()
+        
+        // Match the client's preferences for better matching
+        let preferredLanguage = client.onboardingQuiz?.preferredLanguage ?? "English"
+        let neighborhood = client.onboardingQuiz?.neighborhood ?? neighborhoods.randomElement()
+        
+        // Use similar interests and hobbies for better matching
+        let clientInterests = client.onboardingQuiz?.interests ?? []
+        let clientHobbies = client.onboardingQuiz?.hobbies ?? []
+        let interests = clientInterests.isEmpty ? randomElements(from: interestOptions, count: Int.random(in: 2...4)) : clientInterests
+        let hobbies = clientHobbies.isEmpty ? randomElements(from: self.hobbies, count: Int.random(in: 2...5)) : clientHobbies
+        
+        let background = "Generated matching dummy volunteer account for testing purposes"
+        
+        // Create a profile quiz that matches the client's quiz for high compatibility
+        let matchingProfileQuiz: ProfileQuiz
+        if let clientQuiz = client.profileQuiz {
+            // Copy the client's quiz answers to ensure high match score
+            matchingProfileQuiz = ProfileQuiz(
+                openingUpComfort: clientQuiz.openingUpComfort,
+                stayOnTrackStyle: clientQuiz.stayOnTrackStyle,
+                hardestChallenge: clientQuiz.hardestChallenge,
+                workingOnMost: clientQuiz.workingOnMost,
+                relatableMentor: clientQuiz.relatableMentor,
+                mentorVibe: clientQuiz.mentorVibe,
+                stressResponse: clientQuiz.stressResponse,
+                checkInPreference: clientQuiz.checkInPreference,
+                agePreference: clientQuiz.agePreference,
+                changingSocialCircle: clientQuiz.changingSocialCircle
+            )
+        } else {
+            // Fallback to random if client has no quiz
+            matchingProfileQuiz = generateRandomProfileQuiz()
+        }
+        
+        let onboardingQuiz = OnboardingQuiz(
+            name: name,
+            dateOfBirth: dateOfBirth,
+            phoneNumber: phoneNumber,
+            address: address,
+            emergencyContactName: emergencyContactName,
+            emergencyContactPhone: emergencyContactPhone,
+            preferredLanguage: preferredLanguage,
+            interests: interests,
+            hobbies: hobbies,
+            neighborhood: neighborhood,
+            background: background
+        )
+        
+        return UserModel(
+            userType: .volunteer,
+            name: name,
+            email: email,
+            onboardingQuiz: onboardingQuiz,
+            profileQuiz: matchingProfileQuiz
+        )
+    }
+    
+    /// Creates and saves multiple dummy volunteer accounts (peers/mentors)
+    /// - Parameters:
+    ///   - volunteerCount: Number of dummy volunteers to create
+    ///   - matchingClientId: Optional client ID to create a matching volunteer for
+    ///   - userService: UserService instance to use
+    /// - Returns: Array of created volunteers
+    static func createAndSaveDummyVolunteers(
         volunteerCount: Int = 10,
+        matchingClientId: UUID? = nil,
+        using userService: UserService = UserService()
+    ) throws -> [UserModel] {
+        var volunteers: [UserModel] = []
+        
+        // Get the client to match with (if provided)
+        var matchingClient: UserModel?
+        if let matchingClientId = matchingClientId {
+            matchingClient = try userService.getUser(byId: matchingClientId)
+        }
+        
+        // Generate and save volunteers
+        // First volunteer should match the test account if provided
+        let firstVolunteerShouldMatch = matchingClient != nil && volunteerCount > 0
+        
+        for i in 0..<volunteerCount {
+            let dummy: UserModel
+            if i == 0 && firstVolunteerShouldMatch, let client = matchingClient {
+                // Create a matching volunteer for the first one
+                dummy = generateMatchingDummyVolunteer(for: client)
+            } else {
+                // Create random volunteers for the rest
+                dummy = generateDummyVolunteer()
+            }
+            
+            var volunteer = try userService.createVolunteer(
+                name: dummy.name,
+                email: dummy.email,
+                onboardingQuiz: dummy.onboardingQuiz
+            )
+            // Add profile quiz after creation
+            if let profileQuiz = dummy.profileQuiz {
+                try userService.submitProfileQuiz(userId: volunteer.id, quiz: profileQuiz)
+                // Refresh to get updated quiz
+                volunteer = try userService.getUser(byId: volunteer.id) ?? volunteer
+            }
+            volunteers.append(volunteer)
+        }
+        
+        return volunteers
+    }
+    
+    /// Creates and saves multiple dummy accounts
+    /// - Parameters:
+    ///   - clientCount: Number of dummy clients to create (default 0 - only create volunteers)
+    ///   - volunteerCount: Number of dummy volunteers to create
+    ///   - matchingClientId: Optional client ID to create a matching volunteer for
+    ///   - userService: UserService instance to use
+    /// - Returns: Tuple of created clients and volunteers
+    static func createAndSaveDummyAccounts(
+        clientCount: Int = 0,  // Changed default to 0 - only create volunteers by default
+        volunteerCount: Int = 10,
+        matchingClientId: UUID? = nil,
         using userService: UserService = UserService()
     ) throws -> (clients: [UserModel], volunteers: [UserModel]) {
         var clients: [UserModel] = []
         var volunteers: [UserModel] = []
         
-        // Generate and save clients
-        for _ in 0..<clientCount {
-            let dummy = generateDummyClient()
-            var client = try userService.createClient(
-                name: dummy.name,
-                email: dummy.email,
-                paroleEndDate: dummy.paroleEndDate,
-                onboardingQuiz: dummy.onboardingQuiz
-            )
-            // Add profile quiz after creation
-            if let profileQuiz = dummy.profileQuiz {
-                try userService.submitProfileQuiz(userId: client.id, quiz: profileQuiz)
-                // Refresh to get updated quiz
-                client = try userService.getUser(byId: client.id) ?? client
+        // Only generate clients if clientCount > 0
+        if clientCount > 0 {
+            for _ in 0..<clientCount {
+                let dummy = generateDummyClient()
+                var client = try userService.createClient(
+                    name: dummy.name,
+                    email: dummy.email,
+                    paroleEndDate: dummy.paroleEndDate,
+                    onboardingQuiz: dummy.onboardingQuiz
+                )
+                // Add profile quiz after creation
+                if let profileQuiz = dummy.profileQuiz {
+                    try userService.submitProfileQuiz(userId: client.id, quiz: profileQuiz)
+                    // Refresh to get updated quiz
+                    client = try userService.getUser(byId: client.id) ?? client
+                }
+                clients.append(client)
             }
-            clients.append(client)
+        }
+        
+        // Get the client to match with (if provided)
+        var matchingClient: UserModel?
+        if let matchingClientId = matchingClientId {
+            matchingClient = try userService.getUser(byId: matchingClientId)
         }
         
         // Generate and save volunteers
-        for _ in 0..<volunteerCount {
-            let dummy = generateDummyVolunteer()
+        // First volunteer should match the test account if provided
+        let firstVolunteerShouldMatch = matchingClient != nil && volunteerCount > 0
+        
+        for i in 0..<volunteerCount {
+            let dummy: UserModel
+            if i == 0 && firstVolunteerShouldMatch, let client = matchingClient {
+                // Create a matching volunteer for the first one
+                dummy = generateMatchingDummyVolunteer(for: client)
+            } else {
+                // Create random volunteers for the rest
+                dummy = generateDummyVolunteer()
+            }
+            
             var volunteer = try userService.createVolunteer(
                 name: dummy.name,
                 email: dummy.email,

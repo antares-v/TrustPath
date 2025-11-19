@@ -16,7 +16,7 @@ protocol UserRepositoryProtocol {
 class UserRepository: UserRepositoryProtocol {
     private let userManager: UserManager
     
-    init(userManager: UserManager = UserManager()) {
+    init(userManager: UserManager = UserManager.shared) {  // Use shared by default
         self.userManager = userManager
     }
     

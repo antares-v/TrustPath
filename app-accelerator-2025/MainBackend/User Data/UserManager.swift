@@ -1,6 +1,9 @@
 import Foundation
 
 class UserManager {
+    // Shared singleton instance
+    static let shared = UserManager()
+    
     // Dictionary for O(1) lookups instead of O(n) array searches
     private var users: [UUID: UserModel] = [:]
     // Index by user type for faster filtering

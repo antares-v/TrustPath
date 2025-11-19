@@ -95,6 +95,10 @@ struct MatchingView: View {
         try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
         
         isLoading = true
+        
+        // Ensure dummy volunteers exist (in case profile quiz was submitted before this was added)
+        await appState.createDummyVolunteers()
+        
         matches = await appState.findMatches()
         if !matches.isEmpty {
             selectedMatch = matches.first
