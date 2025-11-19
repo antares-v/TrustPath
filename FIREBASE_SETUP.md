@@ -3,7 +3,21 @@
 ## Overview
 Your project has been integrated with Firebase Firestore. All user data will now be stored in Firebase instead of in-memory storage.
 
-## Required Steps
+## Team Setup Options
+
+### Option 1: Shared Firebase Project (Recommended for Development)
+- **One person** sets up the Firebase project and enables Firestore
+- **All teammates** use the same `GoogleService-Info.plist` file
+- Everyone shares the same database (good for testing together)
+- ⚠️ **Note**: Make sure to add `GoogleService-Info.plist` to `.gitignore` if it contains sensitive production keys, or commit a development version if it's safe
+
+### Option 2: Individual Firebase Projects
+- **Each teammate** creates their own Firebase project
+- **Each person** downloads their own `GoogleService-Info.plist`
+- Everyone has separate databases (good for isolated testing)
+- ✅ **Recommended** if you want to avoid conflicts during development
+
+## Required Steps (For Each Teammate)
 
 ### 1. Add Firebase SDK via Swift Package Manager
 
@@ -17,6 +31,11 @@ Your project has been integrated with Firebase Firestore. All user data will now
 
 ### 2. Download and Add GoogleService-Info.plist
 
+**If using a shared Firebase project:**
+- Ask your team lead for the `GoogleService-Info.plist` file
+- Drag and drop it into your Xcode project (make sure to add it to the target)
+
+**If using individual Firebase projects:**
 1. Go to [Firebase Console](https://console.firebase.google.com/)
 2. Create a new project (or select existing one)
 3. Add an iOS app to your project
@@ -25,6 +44,11 @@ Your project has been integrated with Firebase Firestore. All user data will now
 
 ### 3. Enable Firestore Database
 
+**If using a shared Firebase project:**
+- This should already be done by the person who set up the project
+- Skip this step if Firestore is already enabled
+
+**If using individual Firebase projects:**
 1. In Firebase Console, go to **Firestore Database**
 2. Click **Create Database**
 3. Start in **test mode** (for development) or **production mode** (for production)
