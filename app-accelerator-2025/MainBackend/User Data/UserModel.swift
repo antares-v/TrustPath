@@ -1,18 +1,18 @@
 import Foundation
 
-enum UserType {
+enum UserType: Codable {
     case client  // Person on parole/probation
     case volunteer
 }
 
-enum CommunicationStyle {
+enum CommunicationStyle: Codable {
     case text
     case call
     case inPerson
     case mixed
 }
 
-struct ProfileQuiz {
+struct ProfileQuiz: Codable {
     var hobbies: [String]
     var languagePreference: String
     var neighborhood: String
@@ -56,6 +56,6 @@ struct UserModel {
     }
 }
 
-extension UserModel: Identifiable {
+extension UserModel: Identifiable, Codable {
 }
 

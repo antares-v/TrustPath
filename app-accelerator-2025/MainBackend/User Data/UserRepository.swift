@@ -1,63 +1,63 @@
 import Foundation
 
 protocol UserRepositoryProtocol {
-    func save(_ user: UserModel) throws
-    func update(_ user: UserModel) throws
-    func fetch(byId id: UUID) throws -> UserModel?
-    func fetch(byEmail email: String) throws -> UserModel?
-    func fetchAll() throws -> [UserModel]
-    func fetchClients() throws -> [UserModel]
-    func fetchVolunteers() throws -> [UserModel]
-    func delete(byId id: UUID) throws
-    func userExists(byId id: UUID) throws -> Bool
-    func userExists(byEmail email: String) throws -> Bool
+    func save(_ user: UserModel) async throws
+    func update(_ user: UserModel) async throws
+    func fetch(byId id: UUID) async throws -> UserModel?
+    func fetch(byEmail email: String) async throws -> UserModel?
+    func fetchAll() async throws -> [UserModel]
+    func fetchClients() async throws -> [UserModel]
+    func fetchVolunteers() async throws -> [UserModel]
+    func delete(byId id: UUID) async throws
+    func userExists(byId id: UUID) async throws -> Bool
+    func userExists(byEmail email: String) async throws -> Bool
 }
 
 class UserRepository: UserRepositoryProtocol {
-    private let userManager: UserManager
+    private let mainData: MainData
     
-    init(userManager: UserManager = UserManager()) {
-        self.userManager = userManager
+    init(mainData: MainData = MainData()) {
+        self.mainData = mainData
     }
     
-    func save(_ user: UserModel) throws {
-        userManager.addUser(user)
+    func save(_ user: UserModel) async throws {
+        try await mainData.saveUser(user)
     }
     
-    func update(_ user: UserModel) throws {
-        userManager.updateUser(user)
+    func update(_ user: UserModel) async throws {
+        try await mainData.updateUser(user)
     }
     
-    func fetch(byId id: UUID) throws -> UserModel? {
-        return userManager.getUser(byId: id)
+    func fetch(byId id: UUID) async throws -> UserModel? {
+        return try await mainData.fetchUser(byId: id)
     }
     
-    func fetchAll() throws -> [UserModel] {
-        return userManager.getAllUsers()
+    func fetchAll() async throws -> [UserModel] {
+        return try await mainData.fetchAllUsers()
     }
     
-    func fetchClients() throws -> [UserModel] {
-        return userManager.getClients()
+    func fetchClients() async throws -> [UserModel] {
+        return try await mainData.fetchClients()
     }
     
-    func fetchVolunteers() throws -> [UserModel] {
-        return userManager.getVolunteers()
+    func fetchVolunteers() async throws -> [UserModel] {
+        return try await mainData.fetchVolunteers()
     }
     
-    func delete(byId id: UUID) throws {
-        userManager.removeUser(byId: id)
+    func delete(byId id: UUID) async throws {
+        try await mainData.deleteUser(byId: id)
     }
     
-    func fetch(byEmail email: String) throws -> UserModel? {
-        return userManager.getUser(byEmail: email)
+    func fetch(byEmail email: String) async throws -> UserModel? {
+        return try await mainData.fetchUser(byEmail: email)
     }
     
-    func userExists(byId id: UUID) throws -> Bool {
-        return userManager.userExists(byId: id)
+    func userExists(byId id: UUID) async throws -> Bool {
+        return try await mainData.userExists(byId: id)
     }
     
-    func userExists(byEmail email: String) throws -> Bool {
-        return userManager.userExists(byEmail: email)
+    func userExists(byEmail email: String) async throws -> Bool {
+        return try await mainData.userExists(byEmail: email)
     }
 }
 

@@ -6,9 +6,15 @@
 //
 
 import SwiftUI
+import FirebaseCore
 
 @main
 struct app_accelerator_2025App: App {
+    init() {
+        // Initialize Firebase
+        FirebaseApp.configure()
+    }
+    
     var body: some Scene {
         WindowGroup {
             ContentView()

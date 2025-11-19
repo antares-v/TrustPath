@@ -127,7 +127,7 @@ struct LoginView: View {
     private func signUp() async {
         // Check if email already exists
         do {
-            let allUsers = try appState.userService.getAllUsers()
+            let allUsers = try await appState.userService.getAllUsers()
             if allUsers.contains(where: { $0.email.lowercased() == email.lowercased() }) {
                 await MainActor.run {
                     errorMessage = "An account with this email already exists. Please sign in."
@@ -136,7 +136,7 @@ struct LoginView: View {
                 return
             }
             
-            let user = try appState.userService.createClient(
+            let user = try await appState.userService.createClient(
                 name: name,
                 email: email
             )
@@ -157,8 +157,7 @@ struct LoginView: View {
         // In a real app, you'd verify credentials with a backend
         // For now, we'll try to find existing user
         do {
-            let allUsers = try appState.userService.getAllUsers()
-            if let user = allUsers.first(where: { $0.email.lowercased() == email.lowercased() }) {
+            if let user = try await appState.userService.getUser(byEmail: email) {
                 await MainActor.run {
                     appState.currentUser = user
                     appState.isAuthenticated = true

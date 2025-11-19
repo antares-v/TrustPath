@@ -43,9 +43,12 @@ class AppState: ObservableObject {
         return UserDefaults.standard.string(forKey: "goal_\(userId)")
     }
     
-    func updateUser(_ user: UserModel) {
+    func updateUser(_ user: UserModel) async {
+        isLoading = true
+        defer { isLoading = false }
+        
         do {
-            try userService.updateUser(user)
+            try await userService.updateUser(user)
             currentUser = user
         } catch {
             errorMessage = "Failed to update user: \(error.localizedDescription)"
@@ -59,7 +62,7 @@ class AppState: ObservableObject {
         defer { isLoading = false }
         
         do {
-            try userService.submitProfileQuiz(userId: userId, quiz: quiz)
+            try await userService.submitProfileQuiz(userId: userId, quiz: quiz)
             if var user = currentUser {
                 user.profileQuiz = quiz
                 currentUser = user
@@ -76,7 +79,7 @@ class AppState: ObservableObject {
         defer { isLoading = false }
         
         do {
-            let matches = try matchingService.findMatches(for: userId)
+            let matches = try await matchingService.findMatches(for: userId)
             if let bestMatch = matches.first {
                 currentMatch = bestMatch
             }
@@ -94,7 +97,7 @@ class AppState: ObservableObject {
         defer { isLoading = false }
         
         do {
-            try matchingService.assignVolunteer(to: userId, volunteerId: volunteerId)
+            try await matchingService.assignVolunteer(to: userId, volunteerId: volunteerId)
             // Reload matches
             _ = await findMatches()
         } catch {

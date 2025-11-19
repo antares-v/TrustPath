@@ -9,8 +9,8 @@ class MatchingService {
         self.userService = userService
     }
     
-    func findMatches(for clientId: UUID, with criteria: MatchingCriteria = MatchingCriteria()) throws -> [MatchResult] {
-        guard let client = try userService.getUser(byId: clientId) else {
+    func findMatches(for clientId: UUID, with criteria: MatchingCriteria = MatchingCriteria()) async throws -> [MatchResult] {
+        guard let client = try await userService.getUser(byId: clientId) else {
             throw MatchingError.userNotFound
         }
         
@@ -22,7 +22,7 @@ class MatchingService {
             throw MatchingError.profileQuizNotCompleted
         }
         
-        let allVolunteers = try userService.getVolunteers()
+        let allVolunteers = try await userService.getVolunteers()
         let availableVolunteers = allVolunteers.filter { volunteer in
             volunteer.profileQuiz != nil && criteria.matches(volunteer: volunteer)
         }
@@ -37,12 +37,12 @@ class MatchingService {
         return matches.filter { $0.matchScore >= criteria.minMatchScore }
     }
     
-    func assignVolunteer(to clientId: UUID, volunteerId: UUID) throws {
-        guard var client = try userService.getUser(byId: clientId) else {
+    func assignVolunteer(to clientId: UUID, volunteerId: UUID) async throws {
+        guard var client = try await userService.getUser(byId: clientId) else {
             throw MatchingError.userNotFound
         }
         
-        guard let volunteer = try userService.getUser(byId: volunteerId) else {
+        guard let volunteer = try await userService.getUser(byId: volunteerId) else {
             throw MatchingError.userNotFound
         }
         
@@ -52,13 +52,13 @@ class MatchingService {
         
         // Update client with matched volunteer
         client.matchedVolunteerId = volunteerId
-        try userService.updateUser(client)
+        try await userService.updateUser(client)
         
         // Update volunteer with matched client
         var updatedVolunteer = volunteer
         if !updatedVolunteer.matchedClientIds.contains(clientId) {
             updatedVolunteer.matchedClientIds.append(clientId)
-            try userService.updateUser(updatedVolunteer)
+            try await userService.updateUser(updatedVolunteer)
         }
     }
 }

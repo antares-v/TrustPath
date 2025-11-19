@@ -112,22 +112,6 @@ struct OnboardingView: View {
         UserDefaults.standard.set(goal, forKey: "goal_\(userId)")
         UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding_\(userId)")
         
-        // Update user name - create new user instance with updated name
-        if let currentUser = appState.currentUser {
-            let updatedUser = UserModel(
-                id: currentUser.id,
-                userType: currentUser.userType,
-                name: name,
-                email: currentUser.email,
-                profileQuiz: currentUser.profileQuiz,
-                matchedVolunteerId: currentUser.matchedVolunteerId,
-                matchedClientIds: currentUser.matchedClientIds,
-                paroleEndDate: currentUser.paroleEndDate,
-                createdAt: currentUser.createdAt
-            )
-            appState.updateUser(updatedUser)
-        }
-        
         // Create profile quiz with interests
         let quiz = ProfileQuiz(
             hobbies: Array(selectedInterests),
@@ -140,6 +124,22 @@ struct OnboardingView: View {
         )
         
         Task {
+            // Update user name - create new user instance with updated name
+            if let currentUser = appState.currentUser {
+                let updatedUser = UserModel(
+                    id: currentUser.id,
+                    userType: currentUser.userType,
+                    name: name,
+                    email: currentUser.email,
+                    profileQuiz: currentUser.profileQuiz,
+                    matchedVolunteerId: currentUser.matchedVolunteerId,
+                    matchedClientIds: currentUser.matchedClientIds,
+                    paroleEndDate: currentUser.paroleEndDate,
+                    createdAt: currentUser.createdAt
+                )
+                await appState.updateUser(updatedUser)
+            }
+            
             await appState.submitProfileQuiz(quiz)
             await MainActor.run {
                 appState.hasCompletedOnboarding = true
