@@ -14,7 +14,7 @@ class UserService {
         }
         
         // Check if user with this email already exists
-        if try repository.userExists(byEmail: email) {
+        if try await repository.userExists(byEmail: email) {
             throw UserError.duplicateEmail
         }
         
@@ -25,7 +25,7 @@ class UserService {
             onboardingQuiz: onboardingQuiz,
             paroleEndDate: paroleEndDate
         )
-        try repository.save(user)
+        try await repository.save(user)
         return user
     }
     
@@ -36,7 +36,7 @@ class UserService {
         }
         
         // Check if user with this email already exists
-        if try repository.userExists(byEmail: email) {
+        if try await repository.userExists(byEmail: email) {
             throw UserError.duplicateEmail
         }
         
@@ -46,7 +46,7 @@ class UserService {
             email: email,
             onboardingQuiz: onboardingQuiz
         )
-        try repository.save(user)
+        try await repository.save(user)
         return user
     }
     
@@ -62,36 +62,36 @@ class UserService {
         return try repository.fetch(byEmail: email)
     }
     
-    func submitProfileQuiz(userId: UUID, quiz: ProfileQuiz) throws {
-        guard var user = try repository.fetch(byId: userId) else {
+    func submitProfileQuiz(userId: UUID, quiz: ProfileQuiz) async throws {
+        guard var user = try await repository.fetch(byId: userId) else {
             throw UserError.userNotFound
         }
         user.profileQuiz = quiz
-        try repository.update(user)
+        try await repository.update(user)
     }
     
-    func getUser(byId id: UUID) throws -> UserModel? {
-        return try repository.fetch(byId: id)
+    func getUser(byId id: UUID) async throws -> UserModel? {
+        return try await repository.fetch(byId: id)
     }
     
-    func getAllUsers() throws -> [UserModel] {
-        return try repository.fetchAll()
+    func getAllUsers() async throws -> [UserModel] {
+        return try await repository.fetchAll()
     }
     
-    func getClients() throws -> [UserModel] {
-        return try repository.fetchClients()
+    func getClients() async throws -> [UserModel] {
+        return try await repository.fetchClients()
     }
     
-    func getVolunteers() throws -> [UserModel] {
-        return try repository.fetchVolunteers()
+    func getVolunteers() async throws -> [UserModel] {
+        return try await repository.fetchVolunteers()
     }
     
-    func updateUser(_ user: UserModel) throws {
-        try repository.update(user)
+    func updateUser(_ user: UserModel) async throws {
+        try await repository.update(user)
     }
     
-    func deleteUser(byId id: UUID) throws {
-        try repository.delete(byId: id)
+    func deleteUser(byId id: UUID) async throws {
+        try await repository.delete(byId: id)
     }
 }
 
