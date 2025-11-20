@@ -7,7 +7,7 @@ class UserService {
         self.repository = repository
     }
     
-    func createClient(name: String, email: String, paroleEndDate: Date? = nil) async throws -> UserModel {
+    func createClient(name: String, email: String, paroleEndDate: Date? = nil, onboardingQuiz: OnboardingQuiz? = nil) throws -> UserModel {
         // Validate email format (basic validation)
         guard !email.isEmpty, email.contains("@") else {
             throw UserError.invalidEmail
@@ -22,13 +22,14 @@ class UserService {
             userType: .client,
             name: name,
             email: email,
+            onboardingQuiz: onboardingQuiz,
             paroleEndDate: paroleEndDate
         )
         try await repository.save(user)
         return user
     }
     
-    func createVolunteer(name: String, email: String) async throws -> UserModel {
+    func createVolunteer(name: String, email: String, onboardingQuiz: OnboardingQuiz? = nil) throws -> UserModel {
         // Validate email format (basic validation)
         guard !email.isEmpty, email.contains("@") else {
             throw UserError.invalidEmail
@@ -42,14 +43,23 @@ class UserService {
         let user = UserModel(
             userType: .volunteer,
             name: name,
-            email: email
+            email: email,
+            onboardingQuiz: onboardingQuiz
         )
         try await repository.save(user)
         return user
     }
     
-    func getUser(byEmail email: String) async throws -> UserModel? {
-        return try await repository.fetch(byEmail: email)
+    func submitOnboardingQuiz(userId: UUID, quiz: OnboardingQuiz) throws {
+        guard var user = try repository.fetch(byId: userId) else {
+            throw UserError.userNotFound
+        }
+        user.onboardingQuiz = quiz
+        try repository.update(user)
+    }
+    
+    func getUser(byEmail email: String) throws -> UserModel? {
+        return try repository.fetch(byEmail: email)
     }
     
     func submitProfileQuiz(userId: UUID, quiz: ProfileQuiz) async throws {

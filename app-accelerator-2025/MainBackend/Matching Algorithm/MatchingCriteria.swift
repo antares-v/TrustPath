@@ -2,39 +2,55 @@ import Foundation
 
 struct MatchingCriteria {
     var minMatchScore: Double = 0.5
-    var preferredLanguage: String?
-    var preferredNeighborhood: String?
-    var preferredCommunicationStyle: CommunicationStyle?
-    var requiredHobbies: [String] = []
+    
+    // Filter criteria based on simplified quiz
+    var preferredCheckInStyle: CheckInPreference?
+    var requiredWorkingOn: [WorkingOnMost] = []
+    var requiredRelatableMentor: [RelatableMentor] = []
+    var preferredMentorVibe: MentorVibe?
+    var preferredAge: AgePreference?
     
     func matches(volunteer: UserModel) -> Bool {
         guard let volunteerQuiz = volunteer.profileQuiz else {
             return false
         }
         
-        // Check language preference if specified
-        if let preferredLanguage = preferredLanguage,
-           volunteerQuiz.languagePreference.lowercased() != preferredLanguage.lowercased() {
-            return false
+        // Check check-in preference if specified
+        if let preferredCheckIn = preferredCheckInStyle,
+           let volunteerCheckIn = volunteerQuiz.checkInPreference {
+            if preferredCheckIn != volunteerCheckIn && preferredCheckIn != .noPreference && volunteerCheckIn != .noPreference {
+                return false
+            }
         }
         
-        // Check neighborhood if specified
-        if let preferredNeighborhood = preferredNeighborhood,
-           volunteerQuiz.neighborhood.lowercased() != preferredNeighborhood.lowercased() {
-            return false
+        // Check required "working on" types
+        if !requiredWorkingOn.isEmpty {
+            if let volunteerWorking = volunteerQuiz.workingOnMost,
+               !requiredWorkingOn.contains(volunteerWorking) {
+                return false
+            }
         }
         
-        // Check communication style if specified
-        if let preferredCommunicationStyle = preferredCommunicationStyle,
-           volunteerQuiz.communicationStyle != preferredCommunicationStyle {
-            return false
+        // Check required relatable mentor types
+        if !requiredRelatableMentor.isEmpty {
+            if let volunteerRelatable = volunteerQuiz.relatableMentor,
+               !requiredRelatableMentor.contains(volunteerRelatable) {
+                return false
+            }
         }
         
-        // Check required hobbies
-        if !requiredHobbies.isEmpty {
-            let volunteerHobbies = Set(volunteerQuiz.hobbies.map { $0.lowercased() })
-            let requiredSet = Set(requiredHobbies.map { $0.lowercased() })
-            if volunteerHobbies.intersection(requiredSet).isEmpty {
+        // Check preferred mentor vibe
+        if let preferredVibe = preferredMentorVibe,
+           let volunteerVibe = volunteerQuiz.mentorVibe {
+            if preferredVibe != volunteerVibe {
+                return false
+            }
+        }
+        
+        // Check age preference
+        if let preferredAge = preferredAge,
+           let volunteerAge = volunteerQuiz.agePreference {
+            if preferredAge != volunteerAge && preferredAge != .dontCare && volunteerAge != .dontCare {
                 return false
             }
         }
@@ -42,4 +58,3 @@ struct MatchingCriteria {
         return true
     }
 }
-
