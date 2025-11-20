@@ -120,12 +120,7 @@ struct HomeView: View {
                         Image("TrustPathLogo")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 40, height: 40)
-                            .clipShape(Circle())
-                            .overlay(
-                                Circle()
-                                    .stroke(Color(hex: "#284b63").opacity(0.2), lineWidth: 1)
-                            )
+                            .frame(width: 28, height: 28)
                         // Other logos can be added here
                     }
                 }
@@ -225,8 +220,8 @@ struct UpcomingAppointmentCard: View {
                 .foregroundColor(.white.opacity(0.9))
             }
         }
+        .frame(width: .infinity)
         .padding()
-        .frame(width: 200)
         .background(cardColor)
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)

@@ -99,11 +99,56 @@ class AppState: ObservableObject {
         
         do {
             try matchingService.assignVolunteer(to: userId, volunteerId: volunteerId)
+            // Reload current user to get updated matchedVolunteerId
+            if let updatedUser = try userService.getUser(byId: userId) {
+                currentUser = updatedUser
+            }
             // Reload matches
             _ = await findMatches()
         } catch {
             errorMessage = "Failed to assign match: \(error.localizedDescription)"
         }
+    }
+    
+    func getAssignedMatch() async -> MatchResult? {
+        guard let userId = currentUser?.id,
+              let user = currentUser else { return nil }
+        
+        // For clients, check if they have a matched volunteer
+        if user.userType == .client,
+           let volunteerId = user.matchedVolunteerId {
+            do {
+                guard let volunteer = try userService.getUser(byId: volunteerId) else {
+                    return nil
+                }
+                
+                // Calculate match score
+                let engine = MatchingEngine()
+                let matchScore = engine.calculateMatchScore(client: user, volunteer: volunteer)
+                return MatchResult(volunteer: volunteer, matchScore: matchScore)
+            } catch {
+                return nil
+            }
+        }
+        
+        // For volunteers, get their first matched client (if any)
+        if user.userType == .volunteer,
+           let clientId = user.matchedClientIds.first {
+            do {
+                guard let client = try userService.getUser(byId: clientId) else {
+                    return nil
+                }
+                
+                // For volunteers viewing clients, we need to create a MatchResult
+                // Note: MatchResult expects a volunteer, so we'll need to adapt this
+                // For now, return nil for volunteers - they can see matches differently
+                return nil
+            } catch {
+                return nil
+            }
+        }
+        
+        return nil
     }
     
     func getSharedEvents() async -> [CalendarEvent] {

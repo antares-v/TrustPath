@@ -116,7 +116,7 @@ struct OnboardingView: View {
     
     private var canProceed: Bool {
         switch currentStep {
-        case 0: return !name.trimmingCharacters(in: .whitespaces).isEmpty
+        case 0: return !name.trimmingCharacters(in: .whitespaces).isEmpty && !phoneNumber.trimmingCharacters(in: .whitespaces).isEmpty
         case 1: return !interests.isEmpty // At least one interest required
         case 2: return true // Address and language are optional
         case 3: return true // Emergency contact is optional
@@ -138,7 +138,7 @@ struct OnboardingView: View {
         let onboardingQuiz = OnboardingQuiz(
             name: name,
             dateOfBirth: dateOfBirth,
-            phoneNumber: phoneNumber.isEmpty ? nil : phoneNumber,
+            phoneNumber: phoneNumber,
             address: address.isEmpty ? nil : address,
             emergencyContactName: emergencyContactName.isEmpty ? nil : emergencyContactName,
             emergencyContactPhone: emergencyContactPhone.isEmpty ? nil : emergencyContactPhone,
@@ -210,7 +210,7 @@ struct OnboardingStep1View: View {
                     }
                     
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Date of Birth *")
+                        Text("Date of Birth")
                             .font(.headline)
                             .foregroundColor(Color(hex: "#353535"))
                         
@@ -230,7 +230,7 @@ struct OnboardingStep1View: View {
                     }
                     
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Phone Number")
+                        Text("Phone Number *")
                             .font(.headline)
                             .foregroundColor(Color(hex: "#353535"))
                         TextField("(555) 123-4567", text: $phoneNumber)

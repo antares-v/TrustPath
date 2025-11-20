@@ -43,7 +43,7 @@ struct ProfileView: View {
                                         .foregroundColor(.white)
                                 }
                                 
-                                // Edit indicator
+                                // Edit indicator at bottom right
                                 VStack {
                                     Spacer()
                                     HStack {
@@ -52,6 +52,7 @@ struct ProfileView: View {
                                             .font(.system(size: 24))
                                             .foregroundColor(.white)
                                             .background(Circle().fill(profileColor))
+                                            .offset(x: -4, y: 4)
                                     }
                                 }
                                 .frame(width: 100, height: 100)
@@ -116,6 +117,7 @@ struct ProfileView: View {
                                 }
                             }
                             .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
                             .background(Color.green.opacity(0.1))
                             .cornerRadius(12)
                         }

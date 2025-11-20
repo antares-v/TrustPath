@@ -8,6 +8,7 @@ import SwiftUI
 struct MatchingView: View {
     @EnvironmentObject var appState: AppState
     @State private var matches: [MatchResult] = []
+    @State private var assignedMatch: MatchResult?
     @State private var selectedMatch: MatchResult?
     @State private var showingScheduler = false
     @State private var isLoading = false
@@ -26,6 +27,54 @@ struct MatchingView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 60)
+                    } else if let assigned = assignedMatch {
+                        // Show assigned match permanently
+                        VStack(alignment: .leading, spacing: 16) {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                                Text("Matched Peer")
+                                    .font(.headline)
+                                    .foregroundColor(.green)
+                                Spacer()
+                            }
+                            .padding(.horizontal)
+                            
+                            MatchCard(match: assigned)
+                            
+                            Button(action: {
+                                showingScheduler = true
+                            }) {
+                                HStack {
+                                    Image(systemName: "calendar.badge.plus")
+                                    Text("Schedule Meeting")
+                                        .fontWeight(.semibold)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color(hex: "#284b63"))
+                                .foregroundColor(.white)
+                                .cornerRadius(12)
+                            }
+                            .padding(.horizontal)
+                            
+                            // Show other potential matches if available
+                            if !matches.isEmpty && matches.first?.volunteer.id != assigned.volunteer.id {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Text("Other Potential Matches")
+                                        .font(.headline)
+                                        .padding(.horizontal)
+                                    
+                                    ForEach(matches.prefix(3)) { match in
+                                        if match.volunteer.id != assigned.volunteer.id {
+                                            CompactMatchCard(match: match) {
+                                                selectedMatch = match
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     } else if matches.isEmpty {
                         EmptyMatchStateView()
                     } else if let match = selectedMatch ?? matches.first {
@@ -77,7 +126,7 @@ struct MatchingView: View {
                 await loadMatches()
             }
             .sheet(isPresented: $showingScheduler) {
-                if let match = selectedMatch ?? matches.first {
+                if let match = assignedMatch ?? selectedMatch ?? matches.first {
                     SchedulerView(match: match)
                 }
             }
@@ -91,6 +140,15 @@ struct MatchingView: View {
         isSearching = true
         defer { isSearching = false }
         
+        // Check for assigned match first
+        if let assigned = await appState.getAssignedMatch() {
+            assignedMatch = assigned
+            // Still load other matches for reference
+            matches = await appState.findMatches()
+            isLoading = false
+            return
+        }
+        
         // Add a small delay for better UX
         try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
         
@@ -102,9 +160,11 @@ struct MatchingView: View {
         matches = await appState.findMatches()
         if !matches.isEmpty {
             selectedMatch = matches.first
-            // Automatically assign the best match
-            if let firstMatch = matches.first {
+            // Automatically assign the best match if no match is assigned yet
+            if assignedMatch == nil, let firstMatch = matches.first {
                 await appState.assignMatch(volunteerId: firstMatch.volunteer.id)
+                // Reload assigned match after assignment
+                assignedMatch = await appState.getAssignedMatch()
             }
         }
         isLoading = false
@@ -459,7 +519,7 @@ struct SchedulerView: View {
                         }
                         
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Location (Optional)")
+                            Text("Where would you like to meet (Virtual/In-Person)?")
                                 .font(.headline)
                                 .foregroundColor(Color(hex: "#353535"))
                             TextField("Meeting location", text: $location)
@@ -467,7 +527,7 @@ struct SchedulerView: View {
                         }
                         
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Notes (Optional)")
+                            Text("Message to Peer (Optional)")
                                 .font(.headline)
                                 .foregroundColor(Color(hex: "#353535"))
                             TextEditor(text: $notes)

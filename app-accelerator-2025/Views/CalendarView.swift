@@ -322,7 +322,8 @@ struct EventCard: View {
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.8))
                 }
-                .frame(width: 60)
+                .frame(width: 70)
+                .padding(5)
                 
                 VStack(alignment: .leading, spacing: 8) {
                     Text(event.title)
